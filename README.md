@@ -51,6 +51,10 @@ dotnet build src\VelvetTools\VelvetTools.csproj -c Release
 详细开发说明见 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)，第三方组件与许可见
 [THIRD_PARTY.md](THIRD_PARTY.md)。
 
+## 作者
+
+[Velvet](https://github.com/zhicheng6657-dev) · [个人网站](https://www.whyinstitution.online/)
+
 ## 开源许可
 
 [MIT](LICENSE) © 2026 [Velvet](https://github.com/zhicheng6657-dev/VelvetTools)
