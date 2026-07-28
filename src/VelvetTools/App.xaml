@@ -1,0 +1,15 @@
+<Application x:Class="VelvetTools.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- [0] 调色板：ThemeManager 运行时按深/浅色替换 -->
+                <ResourceDictionary Source="Themes/Palette.Dark.xaml"/>
+                <ResourceDictionary Source="Themes/Glass.xaml"/>
+                <ResourceDictionary Source="Themes/Logo.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

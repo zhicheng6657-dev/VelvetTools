@@ -1,0 +1,59 @@
+<common:GlassWindow x:Class="VelvetTools.Modules.Translate.TranslateWindow"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:common="clr-namespace:VelvetTools.Common"
+                    xmlns:fi="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+                    Title="翻译" Width="560" Height="520"
+                    WindowStartupLocation="CenterScreen"
+                    ResizeMode="CanResizeWithGrip"
+                    ShowInTaskbar="True">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题栏 -->
+        <Grid Grid.Row="0" Margin="2,0,0,12" Background="Transparent" MouseLeftButtonDown="OnDragArea">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="翻译" Style="{StaticResource TitleText}" VerticalAlignment="Center"/>
+            <ComboBox x:Name="ProviderBox" Grid.Column="1" Style="{StaticResource GlassComboBox}"
+                      Width="150" Margin="0,0,8,0" SelectionChanged="OnProviderChanged"/>
+            <ComboBox x:Name="LangBox" Grid.Column="2" Style="{StaticResource GlassComboBox}"
+                      Width="100" Margin="0,0,8,0"/>
+            <Button Grid.Column="3" Style="{StaticResource IconButton}"
+                    Click="OnCloseClick" ToolTip="关闭">
+                <fi:FluentIcon Icon="Dismiss" FontSize="14"/>
+            </Button>
+        </Grid>
+
+        <!-- 原文 -->
+        <TextBox x:Name="SourceBox" Grid.Row="1" Style="{StaticResource GlassTextBox}"
+                 TextWrapping="Wrap" AcceptsReturn="True"
+                 VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"/>
+
+        <!-- 中间操作行 -->
+        <Grid Grid.Row="2" Margin="0,10,0,10">
+            <TextBlock x:Name="StatusText" Style="{StaticResource SubtleText}" VerticalAlignment="Center"/>
+            <Button x:Name="TranslateBtn" Content="翻译  ⏎" Style="{StaticResource AccentButton}"
+                    HorizontalAlignment="Right" Click="OnTranslateClick"/>
+        </Grid>
+
+        <!-- 译文 -->
+        <Grid Grid.Row="3">
+            <TextBox x:Name="ResultBox" Style="{StaticResource GlassTextBox}"
+                     TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"
+                     VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"/>
+            <Button x:Name="CopyBtn" Content="复制译文" Style="{StaticResource GlassButton}"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,10,10" Click="OnCopyClick" Visibility="Collapsed"/>
+        </Grid>
+    </Grid>
+</common:GlassWindow>

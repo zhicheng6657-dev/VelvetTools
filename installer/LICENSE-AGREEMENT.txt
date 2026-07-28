@@ -1,0 +1,67 @@
+Velvet Tools 安装与使用协议
+========================================
+
+请在继续安装前阅读本协议。勾选“我接受协议”表示你已经阅读并同意以下条款。
+
+一、开源许可
+
+Velvet Tools 源代码以 MIT License 提供：
+
+Copyright (c) 2026 Velvet
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+二、第三方组件
+
+软件随包包含 MIT、Apache-2.0、SIL OFL 1.1、BSD-3-Clause 等允许再分发的组件。
+完整著作权、许可证和 NOTICE 安装在“Velvet Tools\Licenses”目录以及
+“Velvet Tools\Assets\Everything\Everything-License.txt”。各第三方组件仍分别受其
+原始许可证约束。
+
+Everything 主程序按闭源二进制分发，其官方授权文本允许使用和再分发；Velvet Tools
+没有把 Everything 描述为自身的开源源代码。
+
+三、管理员权限
+
+安装程序会请求 Windows UAC 管理员授权，仅用于：
+
+1. 把程序写入 Program Files；
+2. 创建开始菜单、桌面快捷方式和“应用和功能”卸载信息；
+3. 在你主动勾选时，创建名为“VelvetTools”的按需计划任务，使应用以后能够以最高权限运行。
+
+最高权限运行不是强制选项，可在安装时不勾选，也可在软件设置中关闭。卸载程序会删除
+该计划任务。“随 Windows 登录自动启动”也是独立选项：普通权限模式使用当前用户启动项，
+最高权限模式使用计划任务的登录触发器。Velvet Tools 不安装或加载第三方内核驱动。
+温度功能只读查询 Windows/显卡驱动公开接口，以及用户已自行运行的监控工具所公开的 WMI；
+不会下载、启动或控制这些监控工具及其驱动。
+
+四、数据与在线服务
+
+设置、API 密钥、对话和知识库默认保存在本机 %AppData%\VelvetTools。在线 AI、翻译、
+OCR 或搜索功能只会把完成相应请求所需的数据发送给你自行选择和配置的服务商。
+卸载时默认保留用户数据，以免误删对话和知识库；如需彻底清理，可在确认备份后手动删除
+%AppData%\VelvetTools。
+
+五、Beta 提示
+
+这是 Beta 0.01 预发布版本，可能包含缺陷或尚未覆盖的硬件兼容问题。请在重要工作前备份
+数据。安装包当前未使用商业代码签名证书签名，Windows SmartScreen 可能显示“未知发布者”；
+请只从项目正式 GitHub Releases 页面下载并核对 SHA-256。
+
+项目主页：https://github.com/zhicheng6657-dev/VelvetTools

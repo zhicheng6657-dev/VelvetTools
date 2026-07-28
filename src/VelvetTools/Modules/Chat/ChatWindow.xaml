@@ -1,0 +1,188 @@
+<common:GlassWindow x:Class="VelvetTools.Modules.Chat.ChatWindow"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:common="clr-namespace:VelvetTools.Common"
+                    xmlns:fi="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+                    Title="AI 对话" Width="920" Height="660" MinWidth="720" MinHeight="480"
+                    WindowStartupLocation="CenterScreen"
+                    ResizeMode="CanResizeWithGrip"
+                    ShowInTaskbar="True">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="212"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ========== 左侧：会话列表 ========== -->
+        <Grid Grid.Column="0" Margin="14,14,0,14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <Button Content="＋  新建对话" Style="{StaticResource AccentButton}"
+                        HorizontalAlignment="Stretch" Padding="0,9" Click="OnNewChatClick"/>
+                <Grid Margin="0,8,0,10">
+                    <TextBox x:Name="SessionSearchBox" Style="{StaticResource GlassTextBox}"
+                             FontSize="12" Padding="26,4,8,4" TextChanged="OnSessionSearchChanged"/>
+                    <fi:FluentIcon Icon="Search" FontSize="12"
+                                   Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Margin="9,0,0,0"/>
+                    <TextBlock x:Name="SessionSearchHint" Text="搜索对话" IsHitTestVisible="False"
+                               Foreground="{DynamicResource TextTertiaryBrush}" FontSize="12"
+                               VerticalAlignment="Center" Margin="26,0,0,0"/>
+                </Grid>
+            </StackPanel>
+
+            <ListBox x:Name="SessionList" Grid.Row="1" Style="{StaticResource GlassListBox}"
+                     SelectionChanged="OnSessionSelected"/>
+            <Grid Grid.Row="2" Margin="4,8,2,0">
+                <TextBlock x:Name="SessionCountText" Style="{StaticResource SubtleText}"
+                           VerticalAlignment="Center"/>
+                <Button x:Name="ClearSessionsBtn" Content="清空" Style="{StaticResource GlassButton}"
+                        HorizontalAlignment="Right" Padding="9,3" FontSize="11.5"
+                        ToolTip="清空全部对话记录" Click="OnClearSessionsClick"/>
+            </Grid>
+        </Grid>
+
+        <!-- ========== 右侧：对话区 ========== -->
+        <Grid Grid.Column="1" Margin="14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 顶栏：模型选择 + 关闭 -->
+            <Grid Grid.Row="0" Background="Transparent" MouseLeftButtonDown="OnDragArea" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="ProviderBox" Grid.Column="0" Style="{StaticResource GlassComboBox}"
+                          Width="150" SelectionChanged="OnProviderChanged"/>
+                <Grid Grid.Column="1" Margin="8,0,0,0">
+                    <ComboBox x:Name="ModelBox" Style="{StaticResource GlassComboBox}"
+                              Width="190" IsEditable="True"
+                              SelectionChanged="OnModelChanged" LostFocus="OnModelChanged"
+                              DropDownOpened="OnModelDropDownOpened"
+                              ToolTip="展开时自动从服务商拉取可用模型"/>
+                    <TextBlock x:Name="ModelPlaceholder" Text="点这里获取模型" FontSize="12.5"
+                               Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"
+                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                </Grid>
+                <TextBlock x:Name="StatusText" Grid.Column="2" Style="{StaticResource SubtleText}"
+                           VerticalAlignment="Center" Margin="12,0,0,0" TextTrimming="CharacterEllipsis"/>
+                <Button Grid.Column="3" Style="{StaticResource IconButton}"
+                        ToolTip="导出当前对话" Click="OnExportClick">
+                    <fi:FluentIcon Icon="DocumentArrowDown" FontSize="15"/>
+                </Button>
+                <Button Grid.Column="4" Style="{StaticResource IconButton}"
+                        ToolTip="AI 设置" Click="OnSettingsClick">
+                    <fi:FluentIcon Icon="Settings" FontSize="15"/>
+                </Button>
+                <Button Grid.Column="5" Style="{StaticResource IconButton}"
+                        ToolTip="关闭" Click="OnCloseClick">
+                    <fi:FluentIcon Icon="Dismiss" FontSize="14"/>
+                </Button>
+            </Grid>
+
+            <!-- 消息列表：不套卡片，回复直接落在窗口玻璃上，长文读着更开阔 -->
+            <Grid Grid.Row="1">
+                <ScrollViewer x:Name="MessageScroll" VerticalScrollBarVisibility="Auto" Padding="4,6,10,6">
+                    <ItemsControl x:Name="MessageList"/>
+                </ScrollViewer>
+
+                <!-- 空态：logo + 快捷提问 -->
+                <StackPanel x:Name="EmptyHint" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            MaxWidth="520">
+                    <Image Source="{DynamicResource LogoPlateDarkImage}" Width="54" Height="54" Opacity="0.55"
+                           IsHitTestVisible="False"/>
+                    <TextBlock Text="有什么可以帮你的？" Style="{StaticResource BodyText}" FontSize="17"
+                               HorizontalAlignment="Center" Margin="0,14,0,0" IsHitTestVisible="False"/>
+                    <TextBlock x:Name="EmptySubHint" Style="{StaticResource SubtleText}"
+                               HorizontalAlignment="Center" Margin="0,7,0,0" IsHitTestVisible="False"/>
+                    <WrapPanel x:Name="SuggestionPanel" HorizontalAlignment="Center" Margin="0,20,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- 输入区：一整块圆角合成器，工具在下、发送在右 -->
+            <Border x:Name="Composer" Grid.Row="2" Margin="0,10,0,0" Padding="12,10"
+                    CornerRadius="18" Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 待发送的图片附件 -->
+                    <ItemsControl x:Name="AttachmentList" Grid.Row="0" Margin="0,0,0,6" Visibility="Collapsed">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+
+                    <Grid Grid.Row="1">
+                        <TextBox x:Name="InputBox" Style="{StaticResource GlassTextBox}"
+                                 Background="Transparent" BorderThickness="0" Padding="4,2"
+                                 FontSize="14" TextWrapping="Wrap" AcceptsReturn="True"
+                                 MinHeight="46" MaxHeight="180"
+                                 VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
+                                 TextChanged="OnInputTextChanged" PreviewKeyDown="OnInputKeyDown"/>
+                        <TextBlock x:Name="InputPlaceholder" Text="发消息给 AI…" FontSize="14"
+                                   Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"
+                                   Margin="5,2,0,0" VerticalAlignment="Top"/>
+                    </Grid>
+
+                    <Grid Grid.Row="2" Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="AttachBtn" Style="{StaticResource IconButton}"
+                                    Width="30" Height="30" ToolTip="添加图片或文档"
+                                    Click="OnAttachClick">
+                                <fi:FluentIcon Icon="Attach" FontSize="14"/>
+                            </Button>
+                            <ToggleButton x:Name="WebSearchToggle" Width="30" Height="30" Margin="3,0,0,0"
+                                          ToolTip="联网搜索：开启后本轮提问会先检索网页再作答"
+                                          Style="{StaticResource ToolToggle}" Click="OnWebSearchToggled">
+                                <fi:FluentIcon Icon="GlobeSearch" FontSize="14"/>
+                            </ToggleButton>
+                            <ToggleButton x:Name="KnowledgeToggle" Width="30" Height="30" Margin="3,0,0,0"
+                                          ToolTip="知识库：开启后先从知识库检索相关片段再作答"
+                                          Style="{StaticResource ToolToggle}" Click="OnKnowledgeToggled">
+                                <fi:FluentIcon Icon="BookOpen" FontSize="14"/>
+                            </ToggleButton>
+                            <ComboBox x:Name="KnowledgeBox" Style="{StaticResource GlassComboBox}"
+                                      Width="134" Height="28" Margin="5,0,0,0" FontSize="11.5"
+                                      Padding="8,2" Visibility="Collapsed"
+                                      SelectionChanged="OnKnowledgeBaseChanged"/>
+                            <TextBlock x:Name="InputHint" Text="Enter 发送 · Shift+Enter 换行"
+                                       Style="{StaticResource SubtleText}"
+                                       VerticalAlignment="Center" Opacity="0.75" Margin="8,0,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button x:Name="StopBtn" Style="{StaticResource GlassButton}"
+                                    Padding="13,6" Margin="0,0,8,0" Visibility="Collapsed" Click="OnStopClick">
+                                <StackPanel Orientation="Horizontal">
+                                    <fi:FluentIcon Icon="Stop" FontSize="13" Margin="0,0,6,0"/>
+                                    <TextBlock Text="停止"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="SendBtn" Style="{StaticResource SendButton}"
+                                    ToolTip="发送（Enter）" Click="OnSendClick">
+                                <fi:FluentIcon Icon="Send" FontSize="15"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</common:GlassWindow>

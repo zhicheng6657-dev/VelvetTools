@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Velvet Tools 原创 V 标志。主图由 OpenAI 图像生成能力创建，来源与提示词
+        记录在 Assets/Brand/README.md；各尺寸由 tools/generate_brand_assets.py
+        确定性生成。这里直接引用位图资源，不再包含第三方 SVG 路径。
+    -->
+
+    <BitmapImage x:Key="LogoWhiteImage"
+                 UriSource="pack://application:,,,/Assets/Brand/VelvetTools-V-white.png"/>
+    <BitmapImage x:Key="LogoColorImage"
+                 UriSource="pack://application:,,,/Assets/Brand/VelvetTools-V-color.png"/>
+    <BitmapImage x:Key="LogoPlateDarkImage"
+                 UriSource="pack://application:,,,/Assets/logo.png"/>
+    <BitmapImage x:Key="LogoPlateLightImage"
+                 UriSource="pack://application:,,,/Assets/logo-light.png"/>
+
+</ResourceDictionary>

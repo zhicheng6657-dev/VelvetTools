@@ -1,0 +1,85 @@
+<common:GlassWindow x:Class="VelvetTools.Modules.Search.SearchWindow"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:common="clr-namespace:VelvetTools.Common"
+                    xmlns:fi="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+                    Title="文件搜索" Width="760" Height="560" MinWidth="560" MinHeight="360"
+                    WindowStartupLocation="CenterScreen"
+                    ResizeMode="CanResizeWithGrip"
+                    ShowInTaskbar="True">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题栏 -->
+        <Grid Grid.Row="0" Background="Transparent" MouseLeftButtonDown="OnDragArea" Margin="2,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="文件搜索" Style="{StaticResource TitleText}" VerticalAlignment="Center"/>
+                <TextBlock Text="由 Everything 提供索引" Style="{StaticResource SubtleText}"
+                           VerticalAlignment="Center" Margin="12,2,0,0"/>
+            </StackPanel>
+            <Button Grid.Column="1" Style="{StaticResource IconButton}"
+                    Click="OnCloseClick" ToolTip="关闭">
+                <fi:FluentIcon Icon="Dismiss" FontSize="14"/>
+            </Button>
+        </Grid>
+
+        <!-- 搜索框 + 选项 -->
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <TextBox x:Name="QueryBox" Style="{StaticResource GlassTextBox}"
+                         FontSize="13" Padding="28,5,8,5" TextChanged="OnQueryChanged"
+                         PreviewKeyDown="OnQueryKeyDown"/>
+                <fi:FluentIcon Icon="Search" FontSize="13"
+                               Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"
+                               VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0,0,0"/>
+                <TextBlock x:Name="QueryHint" Text="搜索文件名，支持 *.pdf、空格分词" IsHitTestVisible="False"
+                           Foreground="{DynamicResource TextTertiaryBrush}" FontSize="13"
+                           VerticalAlignment="Center" Margin="29,0,0,0"/>
+            </Grid>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+                <CheckBox x:Name="CaseCheck" Content="Aa" Style="{StaticResource GlassCheckBox}"
+                          FontSize="12" ToolTip="区分大小写" Margin="0,0,9,0" Click="OnOptionChanged"/>
+                <CheckBox x:Name="WordCheck" Content="全词" Style="{StaticResource GlassCheckBox}"
+                          FontSize="12" ToolTip="全词匹配" Margin="0,0,9,0" Click="OnOptionChanged"/>
+                <CheckBox x:Name="RegexCheck" Content=".*" Style="{StaticResource GlassCheckBox}"
+                          FontSize="12" ToolTip="正则表达式" Click="OnOptionChanged"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- 结果 -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="6">
+            <Grid>
+                <ListBox x:Name="ResultList" Style="{StaticResource GlassListBox}"
+                         MouseDoubleClick="OnItemActivated" KeyDown="OnListKeyDown"/>
+                <!-- 引擎启动中（首次建索引）时的占位，正常几秒就消失 -->
+                <StackPanel x:Name="MissingPanel" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="Collapsed" MaxWidth="380">
+                    <TextBlock x:Name="MissingTitle" Text="正在准备索引…" Style="{StaticResource BodyText}"
+                               HorizontalAlignment="Center" Opacity="0.85"/>
+                    <TextBlock x:Name="MissingDesc" Style="{StaticResource SubtleText}" TextWrapping="Wrap"
+                               TextAlignment="Center" Margin="0,8,0,0"
+                               Text="首次使用需要扫描磁盘建立索引，通常几秒完成"/>
+                    <Button x:Name="RetryBtn" Content="重试" Style="{StaticResource GlassButton}"
+                            HorizontalAlignment="Center" Margin="0,14,0,0"
+                            Visibility="Collapsed" Click="OnRecheckClick"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <TextBlock x:Name="StatusText" Grid.Row="3" Margin="4,10,0,0" Style="{StaticResource SubtleText}"
+                   Text="回车打开 · Ctrl+Enter 打开所在文件夹 · Ctrl+C 复制路径"/>
+    </Grid>
+</common:GlassWindow>

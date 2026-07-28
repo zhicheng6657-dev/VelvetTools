@@ -1,0 +1,52 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============ Velvet Tools 深色调色板（Logo 蓝 / 扁平克制） ============ -->
+    <Color x:Key="AccentColor">#3D8BFF</Color>
+    <Color x:Key="AccentLightColor">#66A8FF</Color>
+
+    <SolidColorBrush x:Key="AccentBrush" Color="#3D8BFF"/>
+    <SolidColorBrush x:Key="AccentLightBrush" Color="#66A8FF"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#FF6B63"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="#34D399"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#FBBF24"/>
+    <SolidColorBrush x:Key="WarningSoftBrush" Color="#33FBBF24"/>
+    <SolidColorBrush x:Key="DangerSoftBrush" Color="#40FF6B63"/>
+
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F3F5F9"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#AEB6C8"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="#78809A"/>
+
+    <SolidColorBrush x:Key="CardBrush" Color="#17FFFFFF"/>
+    <SolidColorBrush x:Key="CardHoverBrush" Color="#24FFFFFF"/>
+    <SolidColorBrush x:Key="ControlBrush" Color="#20FFFFFF"/>
+    <SolidColorBrush x:Key="ControlHoverBrush" Color="#33FFFFFF"/>
+    <SolidColorBrush x:Key="ControlPressedBrush" Color="#10FFFFFF"/>
+    <SolidColorBrush x:Key="PopupBrush" Color="#F2161B26"/>
+    <SolidColorBrush x:Key="TrackBrush" Color="#2EFFFFFF"/>
+    <SolidColorBrush x:Key="HairlineBrush" Color="#16FFFFFF"/>
+    <SolidColorBrush x:Key="SelectedBrush" Color="#383D8BFF"/>
+    <SolidColorBrush x:Key="TileBubbleBrush" Color="#2E3D8BFF"/>
+    <SolidColorBrush x:Key="ThumbBrush" Color="#FFFFFF"/>
+    <!-- 窗口底衬：由 WPF 自绘（换主题即时生效），亚克力只做背后模糊 -->
+    <SolidColorBrush x:Key="WindowTintBrush" Color="#C412151F"/>
+
+    <LinearGradientBrush x:Key="CardBorderBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#33FFFFFF" Offset="0"/>
+        <GradientStop Color="#12FFFFFF" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- 渐变仅用于进度/滑块填充等小面积元素，大按钮走纯色（扁平克制） -->
+    <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#4D9AFF" Offset="0"/>
+        <GradientStop Color="#2470F4" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="AccentGradientHoverBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#66ABFF" Offset="0"/>
+        <GradientStop Color="#3B82FF" Offset="1"/>
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="GlassButtonBrush" Color="#22FFFFFF"/>
+    <SolidColorBrush x:Key="GlassButtonHoverBrush" Color="#33FFFFFF"/>
+
+</ResourceDictionary>

@@ -1,0 +1,54 @@
+name: Build and publish Windows release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install NSIS 3.12
+        shell: pwsh
+        run: choco install nsis --version=3.12.0 -y --no-progress
+
+      - name: Build installer and portable package
+        shell: pwsh
+        run: .\installer\build-release.ps1
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: VelvetTools-${{ github.ref_name }}-win-x64
+          path: out/release/*
+          if-no-files-found: error
+
+      - name: Publish GitHub prerelease
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          gh release create "${{ github.ref_name }}" `
+            "out/release/VelvetTools-Setup-$version-win-x64.exe" `
+            "out/release/VelvetTools-Portable-$version-win-x64.zip" `
+            "out/release/SHA256SUMS.txt" `
+            --verify-tag `
+            --prerelease `
+            --title "Velvet Tools Beta 0.01" `
+            --notes-file "docs/RELEASE-NOTES-$version.md"

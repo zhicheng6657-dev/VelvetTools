@@ -1,0 +1,92 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <RootNamespace>VelvetTools</RootNamespace>
+    <AssemblyName>VelvetTools</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Version>0.0.1-beta.1</Version>
+    <AssemblyVersion>0.0.1.0</AssemblyVersion>
+    <FileVersion>0.0.1.1</FileVersion>
+    <InformationalVersion>0.0.1-beta.1</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Product>Velvet Tools</Product>
+    <Authors>Velvet</Authors>
+    <Company>Velvet</Company>
+    <Description>开源 Windows 玻璃质感工具箱：AI 对话 / 文件搜索 / 截图标注 / OCR / 翻译 / 取色 / 剪贴板 / 启动器 / 硬件监控</Description>
+    <Copyright>Copyright (c) 2026 Velvet (MIT)</Copyright>
+    <SatelliteResourceLanguages>zh-Hans;en</SatelliteResourceLanguages>
+    <!-- WPF 应用的 DPI 由 manifest 声明；WFAC010 是 WinForms 分析器的误报 -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- MIT：Word / Excel / PowerPoint 文档解析 -->
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
+    <!-- Apache-2.0：PDF 文本提取 -->
+    <PackageReference Include="PdfPig" Version="0.1.15" />
+    <!-- MIT：Microsoft Fluent UI System Icons 的 WPF 控件封装 -->
+    <PackageReference Include="FluentIcons.Wpf" Version="2.1.333" GeneratePathProperty="true" />
+    <PackageReference Include="System.Management" Version="9.0.0" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 项目原创品牌资产；生成来源与提示词见 Assets/Brand/README.md。 -->
+    <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\logo-light.png" />
+    <Resource Include="Assets\tray-*.png" />
+    <Resource Include="Assets\Brand\*.png" />
+    <!-- SIL OFL 1.1；Inter 是保留字名。这里只嵌入未修改的原版字体。 -->
+    <Resource Include="Assets\Fonts\*.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 发布包必须同时携带本项目与所有随包资源的许可证/归属说明。 -->
+    <Content Include="..\..\LICENSE" Link="Licenses\VelvetTools-MIT.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\THIRD_PARTY.md" Link="Licenses\THIRD_PARTY.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Fonts\Inter-OFL.txt" Link="Licenses\Inter-OFL.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Licenses\**">
+      <Link>Licenses\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(PkgSystem_Management)\LICENSE.TXT"
+             Link="Licenses\System.Management-MIT.txt"
+             Condition="Exists('$(PkgSystem_Management)\LICENSE.TXT')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(PkgSystem_Management)\THIRD-PARTY-NOTICES.TXT"
+             Link="Licenses\System.Management-THIRD-PARTY-NOTICES.txt"
+             Condition="Exists('$(PkgSystem_Management)\THIRD-PARTY-NOTICES.TXT')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Everything 索引引擎与官方 SDK DLL：授权文本与 MIT 逐字一致，允许随本软件分发。
+         随输出目录一起拷贝，首次搜索时静默拉起，用户无需自行安装。 -->
+    <Content Include="Assets\Everything\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- WinForms 仅用于 Screen/FolderBrowserDialog 等，去掉其隐式 using 以免与 WPF 类型冲突 -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+</Project>

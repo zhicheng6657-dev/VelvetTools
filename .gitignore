@@ -1,0 +1,21 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+publish/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.user
+*.suo
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# NuGet
+*.nupkg
+packages/
+
+# Logs & local settings
+*.log
