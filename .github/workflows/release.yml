@@ -43,12 +43,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          $tag = "${{ github.ref_name }}"
           $version = "${{ github.ref_name }}".TrimStart('v')
-          gh release create "${{ github.ref_name }}" `
-            "out/release/VelvetTools-Setup-$version-win-x64.exe" `
-            "out/release/VelvetTools-Portable-$version-win-x64.zip" `
-            "out/release/SHA256SUMS.txt" `
-            --verify-tag `
-            --prerelease `
-            --title "Velvet Tools Beta 0.01" `
-            --notes-file "docs/RELEASE-NOTES-$version.md"
+          $assets = @(
+            "out/release/VelvetTools-Setup-$version-win-x64.exe",
+            "out/release/VelvetTools-Portable-$version-win-x64.zip",
+            "out/release/SHA256SUMS.txt"
+          )
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $assets --clobber
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            gh release edit $tag `
+              --prerelease `
+              --title "Velvet Tools Beta 0.01" `
+              --notes-file "docs/RELEASE-NOTES-$version.md"
+          } else {
+            gh release create $tag $assets `
+              --verify-tag `
+              --prerelease `
+              --title "Velvet Tools Beta 0.01" `
+              --notes-file "docs/RELEASE-NOTES-$version.md"
+          }

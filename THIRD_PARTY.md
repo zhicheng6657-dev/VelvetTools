@@ -14,6 +14,8 @@ Velvet Tools 以 **MIT** 协议开源。本文件逐项列出：**随包分发�
 | --- | --- | --- | --- | --- |
 | .NET 8 / WPF / Windows Forms | 8.0 | MIT (Microsoft) | 应用框架 | 兼容 |
 | [System.Management](https://www.nuget.org/packages/System.Management) | 9.0 | MIT (Microsoft) | WMI（笔记本内屏亮度、公开温度提供程序） | 兼容 |
+| [System.CodeDom](https://www.nuget.org/packages/System.CodeDom) | 9.0 | MIT (Microsoft) | `System.Management` 的运行时依赖 | 显式固定传递依赖版本；随包附原 NuGet 包的 LICENSE 与 THIRD-PARTY-NOTICES |
+| [System.IO.Packaging](https://www.nuget.org/packages/System.IO.Packaging) | 8.0.1 | MIT (Microsoft) | Open XML 的 OPC 容器支持 | 显式固定传递依赖版本；随包附原 NuGet 包的 LICENSE 与 THIRD-PARTY-NOTICES |
 | [FluentIcons.Wpf / FluentIcons.Common](https://www.nuget.org/packages/FluentIcons.Wpf) | 2.1.333 | **MIT** (davidxuang) | WPF 图标控件封装 | 仅引用 NuGet 二进制；随包附 `Licenses/FluentIcons-MIT.txt` |
 | [Microsoft Fluent UI System Icons](https://github.com/microsoft/fluentui-system-icons) | FluentIcons 2.1.333 内含版本 | **MIT** (Microsoft) | 全部内置界面功能图标 | 由上述 WPF 包提供；随包附 Microsoft MIT 全文与上游 NOTICE |
 | Windows ACPI Thermal Zone（系统 WMI） | 系统组件 | Windows API | 可用时读取 ACPI 温度 | 自行实现 WMI 查询，不安装、解压或加载第三方内核驱动 |
@@ -130,7 +132,7 @@ Velvet Tools 与上述项目及厂商均无从属或背书关系。
 - [x] `Licenses/PdfPig-Apache-2.0-and-NOTICE.txt`、`Licenses/OpenXml-MIT.txt` 存在
 - [x] `Licenses/FluentIcons-MIT.txt`、`Licenses/FluentUI-System-Icons-MIT.txt` 与上游 NOTICE 存在
 - [x] `Licenses/NSIS-zlib.txt` 存在，安装脚本未引入来源不明的插件
-- [x] `Licenses/System.Management-*` notices 由 NuGet 包复制到输出目录
+- [x] `Licenses/System.Management-*`、`System.CodeDom-*`、`System.IO.Packaging-*` 由对应 NuGet 包原样复制到输出目录
 - [x] `Assets/Everything/Everything-License.txt` 随包分发且内容未改动
 - [x] 发行包不含 LibreHardwareMonitor、WinRing0、InpOut 或其他第三方内核驱动
 - [x] 温度回退只查询系统/厂商公开接口和已运行工具的 WMI，不下载或启动外部监控工具
