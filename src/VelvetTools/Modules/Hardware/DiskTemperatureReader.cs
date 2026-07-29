@@ -6,7 +6,7 @@ using VelvetTools.Common;
 namespace VelvetTools.Modules.Hardware;
 
 /// <summary>
-/// 通过 Windows 存储栈自带的只读 IOCTL 查询硬盘温度，代码全部自研（MIT）：
+/// 通过 Windows 存储栈自带的只读 IOCTL 查询硬盘温度，代码全部自研（GPL-3.0-or-later）：
 /// 1. NVMe：IOCTL_STORAGE_QUERY_PROPERTY 协议查询 SMART/健康信息日志页，普通权限即可读取；
 /// 2. SATA/ATA：SMART_RCV_DRIVE_DATA 读取属性 194/190，Windows 将该 IOCTL 限定为管理员。
 /// 只发送标准只读查询命令，不写设备、不改配置，更不安装或加载任何内核驱动。

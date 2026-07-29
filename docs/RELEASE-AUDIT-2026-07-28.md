@@ -21,7 +21,8 @@
   复核；漏洞目录更新时间为 2026-07-24T23:40:32Z。`System.IO.Packaging` 在目录中有历史公告，
   但受影响范围最高到 8.0.0，当前解析版本为 8.0.1；其余包无目录条目。8 个版本的包注册元数据
   均未标记 deprecated。受当前受限网络环境影响，本轮没有刷新到更新的在线目录。
-- **开源建议：MIT。** 按当前依赖与资源构成，可以将 Velvet Tools 源码按 MIT 发布；
+- **开源许可：GPL-3.0-or-later。** 当前依赖与资源构成兼容 GPLv3；Velvet Tools 自切换版本起
+  按 GPL-3.0-or-later 发布，
   发行包必须继续附带 `Licenses/` 与 `Assets/Everything/Everything-License.txt`。
 
 本报告是基于当前仓库状态的工程与许可尽调，不替代律师针对具体司法辖区给出的法律意见。
@@ -102,7 +103,8 @@ TrafficMonitor（Anti-996）、Chatbox（GPLv3）和 ShareX（GPL-3.0）只用�
 
 ## 发布包必须保留
 
-- `Licenses/VelvetTools-MIT.txt`
+- `Licenses/VelvetTools-GPL-3.0-or-later.txt`
+- `Licenses/Hermes-Agent-MIT.txt`
 - `Licenses/THIRD_PARTY.md`
 - `Licenses/FluentIcons-MIT.txt`
 - `Licenses/FluentUI-System-Icons-MIT.txt`
@@ -122,12 +124,13 @@ TrafficMonitor（Anti-996）、Chatbox（GPLv3）和 ShareX（GPL-3.0）只用�
 - `SHA256SUMS.txt`
 
 两份可执行发布物当前均未使用 Authenticode 代码签名证书，Windows SmartScreen 可能显示
-“未知发布者”。这不影响 MIT 开源或安装/卸载，但正式稳定版建议使用可信代码签名证书并保留
+“未知发布者”。这不影响 GPL 开源或安装/卸载，但正式稳定版建议使用可信代码签名证书并保留
 时间戳签名。构建脚本已经提供证书指纹与时间戳参数，不应在仓库中保存证书私钥。
 
 ## 后续发布纪律
 
 1. 每次新增 NuGet、字体、图标、二进制或样例代码前先登记来源和许可。
-2. 不从 GPL、Anti-996、来源不明或禁止再分发的项目复制代码与视觉资产。
+2. 只使用与 GPL-3.0-or-later 兼容且来源清晰的代码；不从 Anti-996、来源不明或禁止再分发
+   的项目复制代码与视觉资产。
 3. 每次发布重跑严格构建、冒烟、漏洞/弃用依赖扫描、私用区字符扫描和敏感信息扫描。
 4. 若更换 Logo 或其他生成式资源，保留输入参考、提示词、生成日期和派生脚本。

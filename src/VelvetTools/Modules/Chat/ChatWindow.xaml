@@ -3,186 +3,684 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:common="clr-namespace:VelvetTools.Common"
                     xmlns:fi="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
-                    Title="AI 对话" Width="920" Height="660" MinWidth="720" MinHeight="480"
+                    Title="Velvet AI"
+                    Width="1180"
+                    Height="780"
+                    MinWidth="760"
+                    MinHeight="540"
                     WindowStartupLocation="CenterScreen"
-                    ResizeMode="CanResizeWithGrip"
-                    ShowInTaskbar="True">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="212"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+                    ResizeMode="CanResize"
+                    ShowInTaskbar="True"
+                    StateChanged="OnWindowStateChanged"
+                    SizeChanged="OnWindowSizeChanged">
+    <common:GlassWindow.Resources>
+        <!--
+        对话页的信息架构与视觉关系基于 MIT 许可的 Hermes Agent Desktop 重新实现。
+        上游归属见 Licenses/Hermes-Agent-MIT.txt；此处为 WPF/XAML 原生实现。
+        -->
+        <Style x:Key="SidebarNavButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="NavRoot"
+                                Background="Transparent"
+                                CornerRadius="7"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="NavRoot" Property="Background"
+                                        Value="{DynamicResource ControlHoverBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="NavRoot" Property="Background"
+                                        Value="{DynamicResource ControlPressedBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.38"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        <!-- ========== 左侧：会话列表 ========== -->
-        <Grid Grid.Column="0" Margin="14,14,0,14">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <Style x:Key="HeaderIconButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="34"/>
+        </Style>
 
-            <StackPanel Grid.Row="0">
-                <Button Content="＋  新建对话" Style="{StaticResource AccentButton}"
-                        HorizontalAlignment="Stretch" Padding="0,9" Click="OnNewChatClick"/>
-                <Grid Margin="0,8,0,10">
-                    <TextBox x:Name="SessionSearchBox" Style="{StaticResource GlassTextBox}"
-                             FontSize="12" Padding="26,4,8,4" TextChanged="OnSessionSearchChanged"/>
-                    <fi:FluentIcon Icon="Search" FontSize="12"
-                                   Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"
-                                   HorizontalAlignment="Left" VerticalAlignment="Center" Margin="9,0,0,0"/>
-                    <TextBlock x:Name="SessionSearchHint" Text="搜索对话" IsHitTestVisible="False"
-                               Foreground="{DynamicResource TextTertiaryBrush}" FontSize="12"
-                               VerticalAlignment="Center" Margin="26,0,0,0"/>
-                </Grid>
-            </StackPanel>
+        <Style x:Key="ComposerToolButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+        </Style>
 
-            <ListBox x:Name="SessionList" Grid.Row="1" Style="{StaticResource GlassListBox}"
-                     SelectionChanged="OnSessionSelected"/>
-            <Grid Grid.Row="2" Margin="4,8,2,0">
-                <TextBlock x:Name="SessionCountText" Style="{StaticResource SubtleText}"
-                           VerticalAlignment="Center"/>
-                <Button x:Name="ClearSessionsBtn" Content="清空" Style="{StaticResource GlassButton}"
-                        HorizontalAlignment="Right" Padding="9,3" FontSize="11.5"
-                        ToolTip="清空全部对话记录" Click="OnClearSessionsClick"/>
-            </Grid>
-        </Grid>
+        <Style x:Key="ComposerTextBox" TargetType="TextBox" BasedOn="{StaticResource GlassTextBox}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        <!-- ========== 右侧：对话区 ========== -->
-        <Grid Grid.Column="1" Margin="14">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <DataTemplate x:Key="ModelLabelTemplate">
+            <TextBlock x:Name="ModelLabel"
+                       Text="{Binding}"
+                       TextTrimming="CharacterEllipsis"
+                       VerticalAlignment="Center"/>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding}" Value="auto">
+                    <Setter TargetName="ModelLabel" Property="Text" Value="自动选择"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
 
-            <!-- 顶栏：模型选择 + 关闭 -->
-            <Grid Grid.Row="0" Background="Transparent" MouseLeftButtonDown="OnDragArea" Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <ComboBox x:Name="ProviderBox" Grid.Column="0" Style="{StaticResource GlassComboBox}"
-                          Width="150" SelectionChanged="OnProviderChanged"/>
-                <Grid Grid.Column="1" Margin="8,0,0,0">
-                    <ComboBox x:Name="ModelBox" Style="{StaticResource GlassComboBox}"
-                              Width="190" IsEditable="True"
-                              SelectionChanged="OnModelChanged" LostFocus="OnModelChanged"
-                              DropDownOpened="OnModelDropDownOpened"
-                              ToolTip="展开时自动从服务商拉取可用模型"/>
-                    <TextBlock x:Name="ModelPlaceholder" Text="点这里获取模型" FontSize="12.5"
-                               Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"
-                               VerticalAlignment="Center" Margin="12,0,0,0"/>
-                </Grid>
-                <TextBlock x:Name="StatusText" Grid.Column="2" Style="{StaticResource SubtleText}"
-                           VerticalAlignment="Center" Margin="12,0,0,0" TextTrimming="CharacterEllipsis"/>
-                <Button Grid.Column="3" Style="{StaticResource IconButton}"
-                        ToolTip="导出当前对话" Click="OnExportClick">
-                    <fi:FluentIcon Icon="DocumentArrowDown" FontSize="15"/>
-                </Button>
-                <Button Grid.Column="4" Style="{StaticResource IconButton}"
-                        ToolTip="AI 设置" Click="OnSettingsClick">
-                    <fi:FluentIcon Icon="Settings" FontSize="15"/>
-                </Button>
-                <Button Grid.Column="5" Style="{StaticResource IconButton}"
-                        ToolTip="关闭" Click="OnCloseClick">
-                    <fi:FluentIcon Icon="Dismiss" FontSize="14"/>
-                </Button>
-            </Grid>
+        <!-- Hermes 式模型按钮：仅显示模型，配置和服务商切换统一留在设置页。 -->
+        <Style x:Key="ModelPillComboBox" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ItemTemplate" Value="{StaticResource ModelLabelTemplate}"/>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                        <Setter Property="Padding" Value="10,7"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ComboBoxItem">
+                                    <Border x:Name="ItemRoot"
+                                            Background="Transparent"
+                                            CornerRadius="6"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="ItemRoot" Property="Background"
+                                                    Value="{DynamicResource ControlHoverBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="ItemRoot" Property="Background"
+                                                    Value="{DynamicResource SelectedBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="DropDownButton"
+                                          Focusable="False"
+                                          ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen,
+                                                              RelativeSource={RelativeSource TemplatedParent},
+                                                              Mode=TwoWay}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="PillRoot"
+                                                Background="Transparent"
+                                                CornerRadius="6">
+                                            <Grid>
+                                                <ContentPresenter Margin="8,0,24,0"
+                                                                  VerticalAlignment="Center"
+                                                                  Content="{Binding SelectionBoxItem,
+                                                                                    RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                                  ContentTemplate="{Binding SelectionBoxItemTemplate,
+                                                                                            RelativeSource={RelativeSource AncestorType=ComboBox}}"/>
+                                                <fi:FluentIcon Icon="ChevronDown"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextTertiaryBrush}"
+                                                               HorizontalAlignment="Right"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,8,0"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="PillRoot" Property="Background"
+                                                        Value="{DynamicResource ControlHoverBrush}"/>
+                                                <Setter Property="Foreground"
+                                                        Value="{DynamicResource TextPrimaryBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="PillRoot" Property="Background"
+                                                        Value="{DynamicResource ControlPressedBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
 
-            <!-- 消息列表：不套卡片，回复直接落在窗口玻璃上，长文读着更开阔 -->
-            <Grid Grid.Row="1">
-                <ScrollViewer x:Name="MessageScroll" VerticalScrollBarVisibility="Auto" Padding="4,6,10,6">
-                    <ItemsControl x:Name="MessageList"/>
-                </ScrollViewer>
+                            <Popup x:Name="PART_Popup"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Placement="Top"
+                                   VerticalOffset="-6"
+                                   StaysOpen="False">
+                                <Border Background="{DynamicResource PopupBrush}"
+                                        BorderBrush="{DynamicResource CardBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="9"
+                                        MinWidth="240"
+                                        MaxHeight="300"
+                                        Padding="4">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-                <!-- 空态：logo + 快捷提问 -->
-                <StackPanel x:Name="EmptyHint" VerticalAlignment="Center" HorizontalAlignment="Center"
-                            MaxWidth="520">
-                    <Image Source="{DynamicResource LogoPlateDarkImage}" Width="54" Height="54" Opacity="0.55"
-                           IsHitTestVisible="False"/>
-                    <TextBlock Text="有什么可以帮你的？" Style="{StaticResource BodyText}" FontSize="17"
-                               HorizontalAlignment="Center" Margin="0,14,0,0" IsHitTestVisible="False"/>
-                    <TextBlock x:Name="EmptySubHint" Style="{StaticResource SubtleText}"
-                               HorizontalAlignment="Center" Margin="0,7,0,0" IsHitTestVisible="False"/>
-                    <WrapPanel x:Name="SuggestionPanel" HorizontalAlignment="Center" Margin="0,20,0,0"/>
-                </StackPanel>
-            </Grid>
+        <!-- 思考过程不再套胶囊：流式时展开，完成后收成一行，正文以细线建立层级。 -->
+        <Style x:Key="ReasoningExpander" TargetType="Expander">
+            <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <StackPanel>
+                            <ToggleButton x:Name="HeaderButton"
+                                          Content="{TemplateBinding Header}"
+                                          IsChecked="{Binding IsExpanded,
+                                                              RelativeSource={RelativeSource TemplatedParent},
+                                                              Mode=TwoWay}"
+                                          HorizontalAlignment="Left"
+                                          Cursor="Hand"
+                                          Focusable="False">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="HeaderHover"
+                                                Background="Transparent"
+                                                CornerRadius="5"
+                                                Padding="5,3">
+                                            <StackPanel Orientation="Horizontal">
+                                                <ContentPresenter VerticalAlignment="Center"/>
+                                                <fi:FluentIcon x:Name="ReasoningChevron"
+                                                               Icon="ChevronRight"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextTertiaryBrush}"
+                                                               Margin="5,0,0,0"
+                                                               VerticalAlignment="Center"
+                                                               RenderTransformOrigin="0.5,0.5">
+                                                    <fi:FluentIcon.RenderTransform>
+                                                        <RotateTransform/>
+                                                    </fi:FluentIcon.RenderTransform>
+                                                </fi:FluentIcon>
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="HeaderHover" Property="Background"
+                                                        Value="{DynamicResource ControlHoverBrush}"/>
+                                                <Setter Property="Foreground"
+                                                        Value="{DynamicResource TextSecondaryBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="ReasoningChevron"
+                                                        Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <RotateTransform Angle="90"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Border x:Name="ExpandSite"
+                                    Visibility="Collapsed"
+                                    BorderBrush="{DynamicResource HairlineBrush}"
+                                    BorderThickness="1,0,0,0"
+                                    Margin="5,3,0,8"
+                                    Padding="12,2,0,2">
+                                <ContentPresenter ContentSource="Content"/>
+                            </Border>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </common:GlassWindow.Resources>
 
-            <!-- 输入区：一整块圆角合成器，工具在下、发送在右 -->
-            <Border x:Name="Composer" Grid.Row="2" Margin="0,10,0,0" Padding="12,10"
-                    CornerRadius="18" Background="{DynamicResource CardBrush}"
-                    BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1">
-                <Grid>
+    <Border x:Name="ChromeRoot"
+            Background="{DynamicResource ChatSurfaceBrush}"
+            BorderBrush="{DynamicResource CardBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="14"
+            ClipToBounds="True">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="SidebarColumn" Width="228"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Hermes 式单层侧栏：导航、搜索和会话在同一平面，不叠卡片。 -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource ChatSidebarBrush}"
+                    BorderBrush="{DynamicResource HairlineBrush}"
+                    BorderThickness="0,0,1,0">
+                <Grid Margin="12,12,12,10">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="42"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- 待发送的图片附件 -->
-                    <ItemsControl x:Name="AttachmentList" Grid.Row="0" Margin="0,0,0,6" Visibility="Collapsed">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                    </ItemsControl>
-
-                    <Grid Grid.Row="1">
-                        <TextBox x:Name="InputBox" Style="{StaticResource GlassTextBox}"
-                                 Background="Transparent" BorderThickness="0" Padding="4,2"
-                                 FontSize="14" TextWrapping="Wrap" AcceptsReturn="True"
-                                 MinHeight="46" MaxHeight="180"
-                                 VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
-                                 TextChanged="OnInputTextChanged" PreviewKeyDown="OnInputKeyDown"/>
-                        <TextBlock x:Name="InputPlaceholder" Text="发消息给 AI…" FontSize="14"
-                                   Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"
-                                   Margin="5,2,0,0" VerticalAlignment="Top"/>
+                    <Grid Grid.Row="0" Margin="7,0,5,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Image Source="{DynamicResource LogoPlateDarkImage}"
+                               Width="26"
+                               Height="26"
+                               IsHitTestVisible="False"
+                               VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="Velvet"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="9,0,0,0"
+                                   VerticalAlignment="Center"/>
                     </Grid>
 
-                    <Grid Grid.Row="2" Margin="0,8,0,0">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button x:Name="AttachBtn" Style="{StaticResource IconButton}"
-                                    Width="30" Height="30" ToolTip="添加图片或文档"
-                                    Click="OnAttachClick">
-                                <fi:FluentIcon Icon="Attach" FontSize="14"/>
-                            </Button>
-                            <ToggleButton x:Name="WebSearchToggle" Width="30" Height="30" Margin="3,0,0,0"
-                                          ToolTip="联网搜索：开启后本轮提问会先检索网页再作答"
-                                          Style="{StaticResource ToolToggle}" Click="OnWebSearchToggled">
-                                <fi:FluentIcon Icon="GlobeSearch" FontSize="14"/>
-                            </ToggleButton>
-                            <ToggleButton x:Name="KnowledgeToggle" Width="30" Height="30" Margin="3,0,0,0"
-                                          ToolTip="知识库：开启后先从知识库检索相关片段再作答"
-                                          Style="{StaticResource ToolToggle}" Click="OnKnowledgeToggled">
-                                <fi:FluentIcon Icon="BookOpen" FontSize="14"/>
-                            </ToggleButton>
-                            <ComboBox x:Name="KnowledgeBox" Style="{StaticResource GlassComboBox}"
-                                      Width="134" Height="28" Margin="5,0,0,0" FontSize="11.5"
-                                      Padding="8,2" Visibility="Collapsed"
-                                      SelectionChanged="OnKnowledgeBaseChanged"/>
-                            <TextBlock x:Name="InputHint" Text="Enter 发送 · Shift+Enter 换行"
-                                       Style="{StaticResource SubtleText}"
-                                       VerticalAlignment="Center" Opacity="0.75" Margin="8,0,0,0"/>
+                    <Button Grid.Row="1"
+                            Style="{StaticResource SidebarNavButton}"
+                            HorizontalAlignment="Stretch"
+                            Click="OnNewChatClick">
+                        <StackPanel Orientation="Horizontal">
+                            <fi:FluentIcon Icon="ChatAdd" FontSize="15" Margin="0,0,9,0"/>
+                            <TextBlock Text="新建对话"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button x:Name="StopBtn" Style="{StaticResource GlassButton}"
-                                    Padding="13,6" Margin="0,0,8,0" Visibility="Collapsed" Click="OnStopClick">
-                                <StackPanel Orientation="Horizontal">
-                                    <fi:FluentIcon Icon="Stop" FontSize="13" Margin="0,0,6,0"/>
-                                    <TextBlock Text="停止"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="SendBtn" Style="{StaticResource SendButton}"
-                                    ToolTip="发送（Enter）" Click="OnSendClick">
-                                <fi:FluentIcon Icon="Send" FontSize="15"/>
-                            </Button>
-                        </StackPanel>
+                    </Button>
+
+                    <Grid Grid.Row="2" Margin="0,8,0,14">
+                        <TextBox x:Name="SessionSearchBox"
+                                 Style="{StaticResource GlassTextBox}"
+                                 Height="32"
+                                 FontSize="11.5"
+                                 Padding="28,4,8,4"
+                                 TextChanged="OnSessionSearchChanged"/>
+                        <fi:FluentIcon Icon="Search"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       IsHitTestVisible="False"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Center"
+                                       Margin="9,0,0,0"/>
+                        <TextBlock x:Name="SessionSearchHint"
+                                   Text="搜索对话"
+                                   IsHitTestVisible="False"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   FontSize="11.5"
+                                   VerticalAlignment="Center"
+                                   Margin="28,0,0,0"/>
+                    </Grid>
+
+                    <Grid Grid.Row="3" Margin="8,0,7,6">
+                        <TextBlock Text="对话"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   FontSize="10.5"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock x:Name="SessionCountText"
+                                   HorizontalAlignment="Right"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   FontSize="10"/>
+                    </Grid>
+
+                    <ListBox x:Name="SessionList"
+                             Grid.Row="4"
+                             Style="{StaticResource GlassListBox}"
+                             SelectionChanged="OnSessionSelected"/>
+
+                    <Grid Grid.Row="5" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0"
+                                Style="{StaticResource SidebarNavButton}"
+                                HorizontalAlignment="Stretch"
+                                Click="OnSettingsClick">
+                            <StackPanel Orientation="Horizontal">
+                                <fi:FluentIcon Icon="Settings" FontSize="15" Margin="0,0,9,0"/>
+                                <TextBlock Text="设置"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="ClearSessionsBtn"
+                                Grid.Column="1"
+                                Style="{StaticResource IconButton}"
+                                Width="30"
+                                Height="30"
+                                ToolTip="清空全部对话记录"
+                                Click="OnClearSessionsClick">
+                            <fi:FluentIcon Icon="Delete" FontSize="13"/>
+                        </Button>
                     </Grid>
                 </Grid>
             </Border>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="25"/>
+                </Grid.RowDefinitions>
+
+                <!-- 标题栏只表达当前会话；模型和工具归入输入区。 -->
+                <Grid Grid.Row="0"
+                      Background="Transparent"
+                      MouseLeftButtonDown="OnDragArea">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="SessionTitleText"
+                               Grid.Column="0"
+                               Text="新对话"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               FontSize="13.5"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="24,0,12,0"/>
+
+                    <Button Grid.Column="1"
+                            Style="{StaticResource HeaderIconButton}"
+                            ToolTip="导出当前对话"
+                            Click="OnExportClick">
+                        <fi:FluentIcon Icon="DocumentArrowDown" FontSize="14"/>
+                    </Button>
+                    <Button Grid.Column="2"
+                            Style="{StaticResource HeaderIconButton}"
+                            ToolTip="AI 设置"
+                            Click="OnSettingsClick">
+                        <fi:FluentIcon Icon="Settings" FontSize="14"/>
+                    </Button>
+                    <Button Grid.Column="3"
+                            Style="{StaticResource HeaderIconButton}"
+                            ToolTip="最小化"
+                            Click="OnMinimizeClick">
+                        <fi:FluentIcon Icon="Subtract" FontSize="13"/>
+                    </Button>
+                    <Button x:Name="MaximizeButton"
+                            Grid.Column="4"
+                            Style="{StaticResource HeaderIconButton}"
+                            ToolTip="最大化"
+                            Click="OnMaximizeClick">
+                        <fi:FluentIcon x:Name="MaximizeIcon" Icon="Square" FontSize="12"/>
+                    </Button>
+                    <Button Grid.Column="5"
+                            Style="{StaticResource HeaderIconButton}"
+                            ToolTip="关闭"
+                            Margin="0,0,5,0"
+                            Click="OnCloseClick">
+                        <fi:FluentIcon Icon="Dismiss" FontSize="13"/>
+                    </Button>
+                </Grid>
+
+                <!-- 消息区沿用 Hermes 的文档式阅读列：助手通栏，用户消息仅轻微着色。 -->
+                <Grid Grid.Row="1">
+                    <ScrollViewer x:Name="MessageScroll"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Padding="48,18,48,10">
+                        <ItemsControl x:Name="MessageList"
+                                      MaxWidth="1040"
+                                      HorizontalAlignment="Stretch"/>
+                    </ScrollViewer>
+
+                    <Grid x:Name="EmptyHint"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Center"
+                          MaxWidth="620"
+                          Margin="20,0,20,14">
+                        <StackPanel>
+                            <Image Source="{DynamicResource LogoPlateDarkImage}"
+                                   Width="38"
+                                   Height="38"
+                                   HorizontalAlignment="Center"
+                                   IsHitTestVisible="False"/>
+                            <TextBlock Text="开始一段新对话"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       FontSize="19"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,14,0,0"
+                                       IsHitTestVisible="False"/>
+                            <TextBlock x:Name="EmptySubHint"
+                                       Text="输入问题，或添加一份本地资料"
+                                       Style="{StaticResource SubtleText}"
+                                       FontSize="12"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,6,0,0"
+                                       IsHitTestVisible="False"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+
+                <!-- 贴底输入区：单个紧凑表面，工具和模型都围绕输入本身。 -->
+                <Border x:Name="Composer"
+                        Grid.Row="2"
+                        MaxWidth="1040"
+                        HorizontalAlignment="Stretch"
+                        Margin="28,6,28,8"
+                        Padding="10,8,9,8"
+                        CornerRadius="10"
+                        Background="{DynamicResource ChatComposerBrush}"
+                        BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ItemsControl x:Name="AttachmentList"
+                                      Grid.Row="0"
+                                      Margin="1,0,0,6"
+                                      Visibility="Collapsed">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+
+                        <Grid Grid.Row="1">
+                            <TextBox x:Name="InputBox"
+                                     Style="{StaticResource ComposerTextBox}"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Padding="2,3"
+                                     FontSize="13.5"
+                                     TextWrapping="Wrap"
+                                     AcceptsReturn="True"
+                                     MinHeight="34"
+                                     MaxHeight="144"
+                                     VerticalScrollBarVisibility="Auto"
+                                     VerticalContentAlignment="Center"
+                                     TextChanged="OnInputTextChanged"
+                                     PreviewKeyDown="OnInputKeyDown"/>
+                            <TextBlock x:Name="InputPlaceholder"
+                                       Text="输入问题，或交给 Velvet 一项任务…"
+                                       FontSize="13.5"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       IsHitTestVisible="False"
+                                       Margin="3,3,0,0"
+                                       VerticalAlignment="Top"/>
+                        </Grid>
+
+                        <Grid Grid.Row="2" Margin="0,7,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="AttachBtn"
+                                    Grid.Column="0"
+                                    Style="{StaticResource ComposerToolButton}"
+                                    ToolTip="添加图片或文档"
+                                    Click="OnAttachClick">
+                                <fi:FluentIcon Icon="Attach" FontSize="13"/>
+                            </Button>
+                            <ToggleButton x:Name="WebSearchToggle"
+                                          Grid.Column="1"
+                                          Width="28"
+                                          Height="28"
+                                          Margin="2,0,0,0"
+                                          ToolTip="联网搜索"
+                                          Style="{StaticResource ToolToggle}"
+                                          Click="OnWebSearchToggled">
+                                <fi:FluentIcon Icon="GlobeSearch" FontSize="13"/>
+                            </ToggleButton>
+                            <ToggleButton x:Name="KnowledgeToggle"
+                                          Grid.Column="2"
+                                          Width="28"
+                                          Height="28"
+                                          Margin="2,0,0,0"
+                                          ToolTip="使用设置中的知识库"
+                                          Style="{StaticResource ToolToggle}"
+                                          Click="OnKnowledgeToggled">
+                                <fi:FluentIcon Icon="BookOpen" FontSize="13"/>
+                            </ToggleButton>
+                            <ComboBox x:Name="KnowledgeBox"
+                                      Grid.Column="3"
+                                      Style="{StaticResource GlassComboBox}"
+                                      Width="132"
+                                      Height="28"
+                                      Margin="6,0,0,0"
+                                      FontSize="11"
+                                      Padding="7,2"
+                                      Visibility="Collapsed"
+                                      SelectionChanged="OnKnowledgeBaseChanged"/>
+
+                            <Grid x:Name="ModelSelectorHost"
+                                  Grid.Column="4"
+                                  Width="172"
+                                  HorizontalAlignment="Left"
+                                  Margin="5,0,8,0">
+                                <ComboBox x:Name="ModelBox"
+                                          Style="{StaticResource ModelPillComboBox}"
+                                          Height="28"
+                                          SelectionChanged="OnModelChanged"
+                                          ToolTip="切换当前服务商已配置的模型；服务商和接口请到设置中管理"/>
+                                <TextBlock x:Name="ModelPlaceholder"
+                                           Text="设置模型"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"
+                                           IsHitTestVisible="False"
+                                           VerticalAlignment="Center"
+                                           Margin="8,0,0,0"/>
+                            </Grid>
+
+                            <TextBlock x:Name="InputHint"
+                                       Grid.Column="6"
+                                       Text="Enter 发送"
+                                       Style="{StaticResource SubtleText}"
+                                       FontSize="10.5"
+                                       VerticalAlignment="Center"
+                                       Opacity="0.72"
+                                       Margin="0,0,8,0"/>
+
+                            <Grid Grid.Column="7">
+                                <Button x:Name="StopBtn"
+                                        Style="{StaticResource IconButton}"
+                                        Width="32"
+                                        Height="32"
+                                        ToolTip="停止生成"
+                                        Visibility="Collapsed"
+                                        Click="OnStopClick">
+                                    <fi:FluentIcon Icon="Stop" FontSize="13"/>
+                                </Button>
+                                <Button x:Name="SendBtn"
+                                        Style="{StaticResource SendButton}"
+                                        Width="32"
+                                        Height="32"
+                                        ToolTip="发送（Enter）"
+                                        Click="OnSendClick">
+                                    <fi:FluentIcon Icon="Send" FontSize="14"/>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- 极轻状态栏与 Hermes 保持同一信息层级，不再使用悬浮状态胶囊。 -->
+                <Border Grid.Row="3"
+                        BorderBrush="{DynamicResource HairlineBrush}"
+                        BorderThickness="0,1,0,0">
+                    <Grid Margin="12,0">
+                        <Border x:Name="StatusPill"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                            <TextBlock x:Name="StatusText"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       FontSize="10"
+                                       MaxWidth="260"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </Border>
+                        <TextBlock x:Name="SafetyHint"
+                                   Text="AI 可能会出错，重要操作请再次确认"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   FontSize="9.5"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </Grid>
         </Grid>
-    </Grid>
+    </Border>
 </common:GlassWindow>

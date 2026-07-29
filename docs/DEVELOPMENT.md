@@ -288,7 +288,7 @@ src/VelvetTools/
 4. 需要热键 → 设置模型加字段 + `ServiceHub.ApplyHotkeys` 注册 + 设置窗口快捷键页加一行。
 5. 需要配置 → `AppSettings` 加节 + 设置窗口加页（导航项、`PageXxx` StackPanel、
    `OnNavChanged` 的 pages 数组、`LoadFromSettings` / `OnSaveClick`）。
-6. **引入新依赖前**：先去 `THIRD_PARTY.md` 登记许可证并确认与 MIT 兼容。
+6. **引入新依赖前**：先去 `THIRD_PARTY.md` 登记许可证并确认与 GPL-3.0-or-later 兼容。
 
 ## 13. 发布
 

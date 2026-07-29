@@ -31,6 +31,12 @@
     <!-- 窗口底衬：由 WPF 自绘（换主题即时生效），亚克力只做背后模糊 -->
     <SolidColorBrush x:Key="WindowTintBrush" Color="#C412151F"/>
 
+    <!-- AI 对话页保持接近黑色的双表面，避免蓝灰色卡片层层叠加。 -->
+    <SolidColorBrush x:Key="ChatSurfaceBrush" Color="#FF0D0D0E"/>
+    <SolidColorBrush x:Key="ChatSidebarBrush" Color="#FF0A0A0B"/>
+    <SolidColorBrush x:Key="ChatComposerBrush" Color="#FF161618"/>
+    <SolidColorBrush x:Key="ChatUserBrush" Color="#FF161618"/>
+
     <LinearGradientBrush x:Key="CardBorderBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="#33FFFFFF" Offset="0"/>
         <GradientStop Color="#12FFFFFF" Offset="1"/>

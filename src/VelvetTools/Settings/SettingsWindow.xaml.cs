@@ -32,7 +32,7 @@ public partial class SettingsWindow : GlassWindow
         string displayVersion = releaseVersion == "0.0.1-beta.1"
             ? "Beta 0.01"
             : $"v{releaseVersion}";
-        VersionText.Text = $"{displayVersion} · MIT 开源";
+        VersionText.Text = $"{displayVersion} · GPL-3.0-or-later";
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
@@ -453,7 +453,11 @@ public partial class SettingsWindow : GlassWindow
         if (p is null) return;
 
         ChatUrlBox.Text = p.BaseUrl;
-        ChatKeyBox.Text = p.ApiKey;
+        ChatKeyBox.Password = p.ApiKey;
+        ChatKeyRevealBox.Text = "";
+        ChatKeyRevealBox.Visibility = Visibility.Collapsed;
+        ChatKeyBox.Visibility = Visibility.Visible;
+        ChatKeyRevealToggle.IsChecked = false;
 
         ChatModelBox.Items.Clear();
         foreach (var m in p.Models.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -470,7 +474,7 @@ public partial class SettingsWindow : GlassWindow
 
     private void UpdateChatProviderStatus(ChatProvider p)
     {
-        bool hasKey = !string.IsNullOrWhiteSpace(ChatKeyBox.Text);
+        bool hasKey = !string.IsNullOrWhiteSpace(ChatKeyBox.Password);
         bool hasModel = !string.IsNullOrWhiteSpace(ChatModelBox.Text);
         string brush = hasKey && hasModel ? "SuccessBrush" : "WarningBrush";
         ChatProviderStatusDot.Fill = (System.Windows.Media.Brush)FindResource(brush);
@@ -486,8 +490,28 @@ public partial class SettingsWindow : GlassWindow
         var p = CurrentChatProvider();
         if (p is null) return;
         p.BaseUrl = ChatUrlBox.Text.Trim();
-        p.ApiKey = ChatKeyBox.Text.Trim();
+        p.ApiKey = ChatKeyBox.Password.Trim();
         p.Model = ChatModelBox.Text.Trim();
+    }
+
+    private void OnChatKeyRevealDown(object sender, MouseButtonEventArgs e)
+    {
+        ChatKeyRevealBox.Text = ChatKeyBox.Password;
+        ChatKeyBox.Visibility = Visibility.Collapsed;
+        ChatKeyRevealBox.Visibility = Visibility.Visible;
+        ChatKeyRevealToggle.IsChecked = true;
+    }
+
+    private void OnChatKeyRevealUp(object sender, MouseButtonEventArgs e) => HideChatKey();
+
+    private void OnChatKeyRevealLeave(object sender, MouseEventArgs e) => HideChatKey();
+
+    private void HideChatKey()
+    {
+        ChatKeyRevealBox.Text = "";
+        ChatKeyRevealBox.Visibility = Visibility.Collapsed;
+        ChatKeyBox.Visibility = Visibility.Visible;
+        ChatKeyRevealToggle.IsChecked = false;
     }
 
     private void OnChatProviderChanged(object sender, SelectionChangedEventArgs e)
@@ -682,7 +706,7 @@ public partial class SettingsWindow : GlassWindow
     private void OnOpenProjectClick(object sender, RoutedEventArgs e)
         => Process.Start(new ProcessStartInfo
         {
-            FileName = "https://github.com/zhicheng6657-dev/VelvetTools",
+            FileName = "https://github.com/zhicheng6657-dev/VelvetTools-cess",
             UseShellExecute = true,
         });
 

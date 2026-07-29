@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
+using System.Runtime.InteropServices;
 using VelvetTools.Common.Interop;
 
 namespace VelvetTools.Common;
@@ -11,6 +13,8 @@ namespace VelvetTools.Common;
 /// </summary>
 public class GlassWindow : Window
 {
+    private HwndSource? _windowSource;
+
     /// <summary>失去焦点时自动隐藏（适合托盘弹出面板）。</summary>
     public bool AutoHideOnDeactivate { get; set; }
 
@@ -35,7 +39,9 @@ public class GlassWindow : Window
         {
             GlassFrameThickness = new Thickness(0),
             CaptionHeight = 0,
-            ResizeBorderThickness = new Thickness(0),
+            // 无边框窗口仍要给系统保留命中区域，否则 XAML 即使设置 CanResize，
+            // 窗口四边也无法用鼠标拖动。NoResize 窗口会自动忽略该区域。
+            ResizeBorderThickness = new Thickness(7),
             CornerRadius = new CornerRadius(0),
             UseAeroCaptionButtons = false,
         };
@@ -62,7 +68,51 @@ public class GlassWindow : Window
         int style = Interop.Native.GetWindowLong(hwnd, Interop.Native.GWL_STYLE);
         Interop.Native.SetWindowLong(hwnd, Interop.Native.GWL_STYLE, style & ~WS_CAPTION);
 
+        // WindowStyle=None 的默认最大化会按整块显示器铺开并盖住任务栏。
+        // 改用当前显示器工作区，效果与浏览器最大化一致，也兼容侧边任务栏。
+        _windowSource = HwndSource.FromHwnd(hwnd);
+        _windowSource?.AddHook(WindowProc);
+
         GlassEffect.ApplyThemed(this);
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _windowSource?.RemoveHook(WindowProc);
+        _windowSource = null;
+        base.OnClosed(e);
+    }
+
+    private IntPtr WindowProc(
+        IntPtr hwnd,
+        int message,
+        IntPtr wParam,
+        IntPtr lParam,
+        ref bool handled)
+    {
+        if (message != Interop.Native.WM_GETMINMAXINFO || ResizeMode == ResizeMode.NoResize)
+            return IntPtr.Zero;
+
+        IntPtr monitor = Interop.Native.MonitorFromWindow(
+            hwnd,
+            Interop.Native.MONITOR_DEFAULTTONEAREST);
+        if (monitor == IntPtr.Zero) return IntPtr.Zero;
+
+        var info = new Interop.Native.MONITORINFO
+        {
+            Size = (uint)Marshal.SizeOf<Interop.Native.MONITORINFO>(),
+        };
+        if (!Interop.Native.GetMonitorInfoW(monitor, ref info)) return IntPtr.Zero;
+
+        var limits = Marshal.PtrToStructure<Interop.Native.MINMAXINFO>(lParam);
+        limits.MaxPosition.X = info.Work.Left - info.Monitor.Left;
+        limits.MaxPosition.Y = info.Work.Top - info.Monitor.Top;
+        limits.MaxSize.X = info.Work.Right - info.Work.Left;
+        limits.MaxSize.Y = info.Work.Bottom - info.Work.Top;
+        limits.MaxTrackSize = limits.MaxSize;
+        Marshal.StructureToPtr(limits, lParam, false);
+        handled = true;
+        return IntPtr.Zero;
     }
 
     /// <summary>主题切换时重刷玻璃色调（无需重建窗口）。</summary>

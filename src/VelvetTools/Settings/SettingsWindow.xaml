@@ -459,7 +459,28 @@
                                 <TextBox x:Name="ChatUrlBox" Style="{StaticResource GlassTextBox}"/>
 
                                 <TextBlock Text="API Key" Style="{StaticResource RowDesc}" Margin="2,10,0,5"/>
-                                <TextBox x:Name="ChatKeyBox" Style="{StaticResource GlassTextBox}"/>
+                                <Grid>
+                                    <PasswordBox x:Name="ChatKeyBox"
+                                                 Style="{StaticResource GlassPasswordBox}"
+                                                 Padding="9,7,42,7"/>
+                                    <TextBox x:Name="ChatKeyRevealBox"
+                                             Style="{StaticResource GlassTextBox}"
+                                             Padding="9,7,42,7"
+                                             IsReadOnly="True"
+                                             Visibility="Collapsed"/>
+                                    <ToggleButton x:Name="ChatKeyRevealToggle"
+                                                  Style="{StaticResource ToolToggle}"
+                                                  Width="32"
+                                                  Height="32"
+                                                  Margin="0,2,4,2"
+                                                  HorizontalAlignment="Right"
+                                                  ToolTip="按住查看密钥"
+                                                  PreviewMouseLeftButtonDown="OnChatKeyRevealDown"
+                                                  PreviewMouseLeftButtonUp="OnChatKeyRevealUp"
+                                                  MouseLeave="OnChatKeyRevealLeave">
+                                        <fi:FluentIcon Icon="Eye" FontSize="14"/>
+                                    </ToggleButton>
+                                </Grid>
 
                                 <Grid Margin="0,10,0,5">
                                     <TextBlock x:Name="ChatModelHint" Text="模型" Style="{StaticResource RowDesc}"
@@ -688,7 +709,7 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="作者" Style="{StaticResource RowTitle}"/>
-                                        <TextBlock Text="本项目采用 MIT 协议开源" Style="{StaticResource RowDesc}"/>
+                                        <TextBlock Text="本项目采用 GPL-3.0-or-later 协议开源" Style="{StaticResource RowDesc}"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Content="Velvet" Style="{StaticResource GlassButton}"
                                             Click="OnOpenProjectClick" ToolTip="打开 Velvet Tools 项目主页"/>

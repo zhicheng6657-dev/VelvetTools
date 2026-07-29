@@ -36,7 +36,7 @@ Unicode True
 !define APP_EXE "VelvetTools.exe"
 !define APP_REG_KEY "Software\VelvetTools"
 !define APP_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\VelvetTools"
-!define APP_URL "https://github.com/zhicheng6657-dev/VelvetTools"
+!define APP_URL "https://github.com/zhicheng6657-dev/VelvetTools-cess"
 
 Name "${APP_NAME} ${APP_DISPLAY_VERSION}"
 OutFile "${OUTPUT_DIR}\VelvetTools-Setup-${APP_VERSION}-win-x64.exe"
@@ -46,7 +46,7 @@ RequestExecutionLevel ${INSTALLER_EXECUTION_LEVEL}
 SetCompressor zlib
 CRCCheck force
 XPStyle on
-BrandingText "Velvet Tools · MIT"
+BrandingText "Velvet Tools · GPL-3.0-or-later"
 Icon "..\src\VelvetTools\Assets\app.ico"
 UninstallIcon "..\src\VelvetTools\Assets\app.ico"
 ShowInstDetails show

@@ -14,6 +14,9 @@ internal static class Native
     [DllImport("user32.dll")] internal static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] internal static extern uint RegisterWindowMessage(string lpString);
     [DllImport("user32.dll")] internal static extern bool GetCursorPos(out POINT lpPoint);
+    [DllImport("user32.dll")] internal static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    internal static extern bool GetMonitorInfoW(IntPtr monitor, ref MONITORINFO info);
 
     internal static readonly IntPtr HWND_TOPMOST = new(-1);
     internal const uint SWP_NOACTIVATE = 0x0010;
@@ -25,6 +28,28 @@ internal static class Native
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct POINT { public int X; public int Y; }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct MINMAXINFO
+    {
+        public POINT Reserved;
+        public POINT MaxSize;
+        public POINT MaxPosition;
+        public POINT MinTrackSize;
+        public POINT MaxTrackSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct MONITORINFO
+    {
+        public uint Size;
+        public RECT Monitor;
+        public RECT Work;
+        public uint Flags;
+    }
+
+    internal const int WM_GETMINMAXINFO = 0x0024;
+    internal const uint MONITOR_DEFAULTTONEAREST = 0x00000002;
 
     // ---------- hotkey ----------
     [DllImport("user32.dll")] internal static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);

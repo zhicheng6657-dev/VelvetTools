@@ -19,6 +19,8 @@ public partial class ChatWindow : GlassWindow
     private TextBlock? _streamingText;
     private TextBlock? _reasoningText;
     private Border? _reasoningHost;
+    private Expander? _reasoningExpander;
+    private Expander? _lastRenderedReasoning;
 
     public ChatWindow()
     {
@@ -27,7 +29,6 @@ public partial class ChatWindow : GlassWindow
 
         App.Services.Settings.Chat.EnsurePresets();
         ReloadProviders();
-        BuildSuggestions();
 
         if (_store.Sessions.Count > 0)
         {
@@ -65,18 +66,75 @@ public partial class ChatWindow : GlassWindow
         InputBox.Focus();
     }
 
-    // ==================== 服务商 / 模型 ====================
+    /// <summary>仅供 --smoke 截图：展示空白工作台，不修改或保存用户会话。</summary>
+    public void PrepareEmptyStateForSelfTest()
+    {
+        MessageList.Items.Clear();
+        InputBox.Text = "";
+        EmptyHint.Visibility = Visibility.Visible;
+        SessionTitleText.Text = "新对话";
+        SafetyHint.Visibility = ActualWidth >= 920
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        UpdateResponsiveLayout();
+    }
+
+    /// <summary>仅供 --smoke 截图：使用不落盘的示例内容核对消息层级与输入区。</summary>
+    public void PrepareConversationStateForSelfTest()
+    {
+        MessageList.Items.Clear();
+        EmptyHint.Visibility = Visibility.Collapsed;
+        SessionTitleText.Text = "整理版本发布说明";
+
+        AppendBubble(new ChatMessage
+        {
+            Role = ChatRole.User,
+            Content = "请把这次工具箱更新整理成一份简洁的发布说明，重点写清界面、文件搜索和 AI 对话的变化。",
+        });
+        AppendBubble(new ChatMessage
+        {
+            Role = ChatRole.Assistant,
+            Reasoning =
+                "先确认发布说明需要覆盖的范围，再把变化归并为用户最容易理解的三组，" +
+                "最后补上安装与回归建议。",
+            Content =
+                "这次更新主要围绕三个部分展开：\n\n" +
+                "- **AI 对话**：重新整理会话栏、消息阅读区与输入工具，让模型和附件选择更顺手。\n" +
+                "- **文件搜索**：完善索引状态检查与降级路径，减少首次使用时无结果的情况。\n" +
+                "- **界面细节**：统一窗口间距、字体和图标，并补充窄窗口适配。\n\n" +
+                "发布前建议再完成一次安装、卸载与深色模式回归。",
+        });
+
+        InputBox.Text = "继续把它改成适合 GitHub Releases 的版本";
+        InputBox.CaretIndex = InputBox.Text.Length;
+        UpdateComposerState();
+        UpdateResponsiveLayout();
+        MessageScroll.ScrollToEnd();
+    }
+
+    /// <summary>仅供 --smoke 截图：展开最终一条消息的思考过程，核对折叠层级。</summary>
+    public void PrepareReasoningStateForSelfTest()
+    {
+        PrepareConversationStateForSelfTest();
+        InputBox.Text = "";
+        _lastRenderedReasoning?.SetCurrentValue(Expander.IsExpandedProperty, true);
+        UpdateComposerState();
+    }
+
+    /// <summary>仅供 --smoke 截图：展开模型选择菜单，核对弹层位置和选中态。</summary>
+    public void PrepareModelPickerForSelfTest()
+    {
+        PrepareEmptyStateForSelfTest();
+        ModelBox.IsDropDownOpen = true;
+    }
+
+    public void CloseModelPickerForSelfTest() => ModelBox.IsDropDownOpen = false;
+
+    // ==================== 模型 ====================
     private void ReloadProviders()
     {
-        _loading = true;
-        var chat = App.Services.Settings.Chat;
-        ProviderBox.Items.Clear();
-        foreach (var p in chat.Providers)
-            ProviderBox.Items.Add(p.Name);
-
-        int idx = chat.Providers.FindIndex(p => p.Id == chat.ActiveProviderId);
-        ProviderBox.SelectedIndex = idx >= 0 ? idx : 0;
-        _loading = false;
+        // 服务商、Base URL、API Key 与模型清单只在设置页管理。
+        // 对话页读取当前服务商，仅保留一次会话内的模型切换。
         ReloadModels();
     }
 
@@ -90,7 +148,9 @@ public partial class ChatWindow : GlassWindow
         {
             foreach (var m in provider.Models.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 ModelBox.Items.Add(m);
-            ModelBox.Text = provider.Model;
+            if (!string.IsNullOrWhiteSpace(provider.Model) && !ModelBox.Items.Contains(provider.Model))
+                ModelBox.Items.Add(provider.Model);
+            ModelBox.SelectedItem = provider.Model;
         }
         _loading = false;
         UpdateStatus();
@@ -98,71 +158,13 @@ public partial class ChatWindow : GlassWindow
 
     private ChatProvider? CurrentProvider()
     {
-        var chat = App.Services.Settings.Chat;
-        int i = ProviderBox.SelectedIndex;
-        return i >= 0 && i < chat.Providers.Count ? chat.Providers[i] : chat.Active;
+        return App.Services.Settings.Chat.Active;
     }
 
-    private void OnProviderChanged(object sender, SelectionChangedEventArgs e)
+    private static string DisplayModel(string? model)
     {
-        if (_loading) return;
-        var provider = CurrentProvider();
-        if (provider is null) return;
-        App.Services.Settings.Chat.ActiveProviderId = provider.Id;
-        if (_session is not null)
-        {
-            _session.ProviderId = provider.Id;
-            _session.Model = provider.Model;
-            _session.Updated = DateTime.Now;
-            _store.Save();
-        }
-        App.Services.Settings.Save();
-        _modelsFetched = false; // 换服务商后允许重新拉取
-        ReloadModels();
-    }
-
-    private bool _modelsFetched;
-
-    /// <summary>展开模型下拉时按需从服务商拉一次真实模型列表（每个服务商每次会话期拉一次）。</summary>
-    private async void OnModelDropDownOpened(object? sender, EventArgs e)
-    {
-        var provider = CurrentProvider();
-        if (provider is null || _modelsFetched || string.IsNullOrWhiteSpace(provider.ApiKey)) return;
-        _modelsFetched = true;
-
-        try
-        {
-            StatusText.Text = $"正在获取 {provider.Name} 的模型列表…";
-            StatusText.Foreground = (Brush)FindResource("TextTertiaryBrush");
-            var models = await App.Services.Chat.FetchModelsAsync(provider);
-            if (models.Count == 0) return;
-
-            provider.Models = string.Join(",", models);
-            provider.ModelsFromApi = true;
-            App.Services.Settings.Save();
-
-            string current = ModelBox.Text;
-            _loading = true;
-            ModelBox.Items.Clear();
-            foreach (var m in models) ModelBox.Items.Add(m);
-            // 之前没选过模型就默认落到第一个，省得展开完还是空的
-            ModelBox.Text = string.IsNullOrWhiteSpace(current) ? models[0] : current;
-            _loading = false;
-
-            if (!string.Equals(ModelBox.Text, provider.Model, StringComparison.Ordinal))
-            {
-                provider.Model = ModelBox.Text;
-                App.Services.Settings.Save();
-            }
-            UpdateStatus();
-        }
-        catch (Exception ex)
-        {
-            _modelsFetched = false;
-            StatusText.Text = "无法自动获取模型，可直接输入模型名";
-            StatusText.Foreground = (Brush)FindResource("WarningBrush");
-            Logger.Info("拉取模型列表失败（保留现有候选）：" + ex.Message);
-        }
+        string value = model?.Trim() ?? "";
+        return value.Equals("auto", StringComparison.OrdinalIgnoreCase) ? "自动选择" : value;
     }
 
     private void OnModelChanged(object sender, RoutedEventArgs e)
@@ -170,7 +172,7 @@ public partial class ChatWindow : GlassWindow
         if (_loading) return;
         var provider = CurrentProvider();
         if (provider is null) return;
-        string model = ModelBox.Text.Trim();
+        string model = (ModelBox.SelectedItem as string ?? "").Trim();
         if (model.Length == 0 || model == provider.Model) return;
         provider.Model = model;
         if (_session is not null)
@@ -188,7 +190,8 @@ public partial class ChatWindow : GlassWindow
     {
         var provider = CurrentProvider();
         // 模型框空着时给个提示，不然看着像坏了
-        ModelPlaceholder.Visibility = string.IsNullOrWhiteSpace(ModelBox.Text)
+        string selectedModel = ModelBox.SelectedItem as string ?? "";
+        ModelPlaceholder.Visibility = string.IsNullOrWhiteSpace(selectedModel)
             ? Visibility.Visible : Visibility.Collapsed;
 
         if (provider is null)
@@ -205,21 +208,21 @@ public partial class ChatWindow : GlassWindow
             StatusText.ToolTip = $"{provider.Name} 尚未配置 API Key，点击右侧齿轮前往设置";
             StatusText.Foreground = (Brush)FindResource("WarningBrush");
         }
-        else if (string.IsNullOrWhiteSpace(ModelBox.Text))
+        else if (string.IsNullOrWhiteSpace(selectedModel))
         {
             StatusText.Text = $"● {provider.Name} · 待选模型";
-            StatusText.ToolTip = "密钥已配置，请选择或直接输入模型";
+            StatusText.ToolTip = "请到设置页获取或填写模型，再回到这里选择";
             StatusText.Foreground = (Brush)FindResource("WarningBrush");
         }
         else
         {
             StatusText.Text = $"● {provider.Name} · 已就绪";
-            StatusText.ToolTip = $"{provider.Name} · {ModelBox.Text}";
+            StatusText.ToolTip = $"{provider.Name} · {selectedModel}";
             StatusText.Foreground = (Brush)FindResource("SuccessBrush");
         }
         EmptySubHint.Text = string.IsNullOrWhiteSpace(provider.ApiKey)
             ? "先到 设置 → AI 对话 填写 API Key"
-            : $"{provider.Name} · {provider.Model}";
+            : $"{provider.Name} · {DisplayModel(provider.Model)}";
     }
 
     // ==================== 会话 ====================
@@ -275,23 +278,30 @@ public partial class ChatWindow : GlassWindow
 
         foreach (var s in sessions)
         {
-            var stack = new StackPanel();
-            stack.Children.Add(new TextBlock
+            var row = new Grid();
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var title = new TextBlock
             {
                 Text = s.Title,
-                Foreground = (Brush)FindResource("TextPrimaryBrush"),
-                FontSize = 13,
+                FontSize = 12.5,
                 TextTrimming = TextTrimming.CharacterEllipsis,
-            });
-            stack.Children.Add(new TextBlock
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            title.SetResourceReference(TextBlock.ForegroundProperty, "TextPrimaryBrush");
+            row.Children.Add(title);
+            var timestamp = new TextBlock
             {
                 Text = s.Updated.ToString(s.Updated.Date == DateTime.Today ? "HH:mm" : "MM-dd"),
-                Foreground = (Brush)FindResource("TextTertiaryBrush"),
-                FontSize = 11,
-                Margin = new Thickness(0, 3, 0, 0),
-            });
+                FontSize = 9.5,
+                Margin = new Thickness(8, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            timestamp.SetResourceReference(TextBlock.ForegroundProperty, "TextTertiaryBrush");
+            Grid.SetColumn(timestamp, 1);
+            row.Children.Add(timestamp);
 
-            var item = new ListBoxItem { Content = stack, Tag = s };
+            var item = new ListBoxItem { Content = row, Tag = s };
             var menu = new ContextMenu();
             var del = new MenuItem { Header = "删除对话" };
             del.Click += (_, _) =>
@@ -325,6 +335,7 @@ public partial class ChatWindow : GlassWindow
             ? $"{_store.Sessions.Count} 个对话"
             : $"{SessionList.Items.Count} / {_store.Sessions.Count} 个对话";
         ClearSessionsBtn.IsEnabled = _store.Sessions.Count > 0;
+        SessionTitleText.Text = _session?.Title ?? "新对话";
         _loading = false;
     }
 
@@ -361,7 +372,6 @@ public partial class ChatWindow : GlassWindow
         if (providerIndex < 0) return;
 
         _loading = true;
-        ProviderBox.SelectedIndex = providerIndex;
         chat.ActiveProviderId = chat.Providers[providerIndex].Id;
         _loading = false;
         ReloadModels();
@@ -372,7 +382,7 @@ public partial class ChatWindow : GlassWindow
             _loading = true;
             if (!ModelBox.Items.Contains(_session.Model))
                 ModelBox.Items.Add(_session.Model);
-            ModelBox.Text = _session.Model;
+            ModelBox.SelectedItem = _session.Model;
             provider.Model = _session.Model;
             _loading = false;
         }
@@ -385,6 +395,8 @@ public partial class ChatWindow : GlassWindow
         foreach (var m in _session.Messages)
             AppendBubble(m);
         EmptyHint.Visibility = _session.Messages.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        SessionTitleText.Text = string.IsNullOrWhiteSpace(_session.Title) ? "新对话" : _session.Title;
+        UpdateResponsiveLayout();
         ScrollToEnd();
     }
 
@@ -403,36 +415,10 @@ public partial class ChatWindow : GlassWindow
         SendBtn.IsEnabled = !empty || _pendingImages.Count > 0 || _pendingDocs.Count > 0;
     }
 
-    /// <summary>空会话里给几个起手式，省得对着空白框发呆。</summary>
-    private void BuildSuggestions()
-    {
-        var samples = new[]
-        {
-            "帮我把这段文字润色一下",
-            "用简单的话解释一个概念",
-            "写一个 PowerShell 脚本",
-            "总结我待会发的文档",
-        };
-
-        foreach (var text in samples)
-        {
-            var chip = new Button { Content = text, Style = (Style)FindResource("SuggestionChip") };
-            string captured = text;
-            chip.Click += (_, _) =>
-            {
-                InputBox.Text = captured;
-                InputBox.CaretIndex = InputBox.Text.Length;
-                InputBox.Focus();
-            };
-            SuggestionPanel.Children.Add(chip);
-        }
-    }
-
-    // ==================== 气泡渲染 ====================
+    // ==================== 消息渲染 ====================
     /// <summary>
-    /// 一条消息的外壳。助手用"头像 + 通栏正文"，正文不套气泡——
-    /// 主流 AI 客户端都这么排，长回答和代码块读起来才不憋屈；
-    /// 用户消息保留右对齐气泡，一眼能分清谁说的。
+    /// 一条消息的外壳。助手使用文档式通栏正文，用户输入使用轻描边整行；
+    /// 两者共享同一阅读列，长回答和代码块不会被窄气泡挤压。
     /// </summary>
     private FrameworkElement BuildMessageShell(bool isUser, out StackPanel content)
     {
@@ -440,41 +426,14 @@ public partial class ChatWindow : GlassWindow
 
         if (isUser)
         {
-            content.HorizontalAlignment = HorizontalAlignment.Right;
-            content.Margin = new Thickness(64, 0, 4, 18);
+            content.HorizontalAlignment = HorizontalAlignment.Stretch;
+            content.Margin = new Thickness(0, 0, 0, 18);
             return content;
         }
 
-        var grid = new Grid { Margin = new Thickness(0, 0, 24, 18) };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-        var avatar = new Border
-        {
-            Width = 26,
-            Height = 26,
-            CornerRadius = new CornerRadius(13),
-            VerticalAlignment = VerticalAlignment.Top,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Margin = new Thickness(0, 1, 0, 0),
-            Child = new Image
-            {
-                Width = 15,
-                Height = 15,
-                Stretch = Stretch.Uniform,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            },
-        };
-        // 品牌色底 + 白 V：浅色深色都够清楚，白底浅灰底上不会糊成一团
-        avatar.SetResourceReference(Border.BackgroundProperty, "AccentGradientBrush");
-        ((Image)avatar.Child).SetResourceReference(Image.SourceProperty, "LogoWhiteImage");
-        grid.Children.Add(avatar);
-
-        content.Margin = new Thickness(0, 0, 0, 0);
-        Grid.SetColumn(content, 1);
-        grid.Children.Add(content);
-        return grid;
+        content.HorizontalAlignment = HorizontalAlignment.Stretch;
+        content.Margin = new Thickness(22, 0, 22, 18);
+        return content;
     }
 
     /// <summary>鼠标移到消息上才浮出的操作条，平时不占视觉重量。</summary>
@@ -544,7 +503,15 @@ public partial class ChatWindow : GlassWindow
 
         // 思维链（可折叠）
         if (!string.IsNullOrWhiteSpace(m.Reasoning))
-            container.Children.Add(BuildReasoning(m.Reasoning, out _, out _));
+        {
+            var disclosure = BuildReasoning(
+                m.Reasoning,
+                out _,
+                out _,
+                out var reasoningExpander);
+            _lastRenderedReasoning = reasoningExpander;
+            container.Children.Add(disclosure);
+        }
 
         // 文档附件胶囊
         if (m.Attachments is { Count: > 0 })
@@ -652,18 +619,19 @@ public partial class ChatWindow : GlassWindow
             body = stack;
         }
 
-        // 用户消息裹气泡；助手回复直接通栏，长文和代码块才有地方展开
+        // Hermes 式消息层级：用户输入是一条轻描边行，助手回复保持文档式通栏。
         if (m.IsUser)
         {
             var bubble = new Border
             {
-                CornerRadius = new CornerRadius(14, 14, 4, 14),
-                Padding = new Thickness(14, 10, 14, 10),
-                MaxWidth = 620,
-                HorizontalAlignment = HorizontalAlignment.Right,
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(14, 9, 14, 9),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                BorderThickness = new Thickness(1),
                 Child = body,
             };
-            bubble.SetResourceReference(Border.BackgroundProperty, "SelectedBrush");
+            bubble.SetResourceReference(Border.BackgroundProperty, "ChatUserBrush");
+            bubble.SetResourceReference(Border.BorderBrushProperty, "CardBorderBrush");
             container.Children.Add(bubble);
         }
         else
@@ -794,31 +762,34 @@ public partial class ChatWindow : GlassWindow
         MessageList.Items.Add(shell);
     }
 
-    private Border BuildReasoning(string initial, out TextBlock body, out Border host)
+    private Border BuildReasoning(
+        string initial,
+        out TextBlock body,
+        out Border host,
+        out Expander expander,
+        bool live = false)
     {
         body = new TextBlock
         {
             Text = initial,
-            Foreground = (Brush)FindResource("TextTertiaryBrush"),
             FontSize = 12,
+            LineHeight = 19,
             TextWrapping = TextWrapping.Wrap,
         };
-        var expander = new Expander
+        body.SetResourceReference(TextBlock.ForegroundProperty, "TextTertiaryBrush");
+
+        expander = new Expander
         {
-            Header = "思考过程",
-            Foreground = (Brush)FindResource("TextSecondaryBrush"),
-            FontSize = 12,
-            IsExpanded = false,
+            Header = live ? "思考中…" : "已思考",
+            Style = (Style)FindResource("ReasoningExpander"),
+            IsExpanded = live,
             Content = body,
-            Margin = new Thickness(0, 0, 0, 6),
         };
         host = new Border
         {
-            Background = (Brush)FindResource("ControlBrush"),
-            CornerRadius = new CornerRadius(10),
-            Padding = new Thickness(10, 6, 10, 6),
-            MaxWidth = 620,
-            HorizontalAlignment = HorizontalAlignment.Left,
+            Background = Brushes.Transparent,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = new Thickness(-5, 0, 0, 5),
             Child = expander,
         };
         return host;
@@ -1266,6 +1237,7 @@ public partial class ChatWindow : GlassWindow
         AppendStreamingBubble();
 
         SendBtn.IsEnabled = false;
+        SendBtn.Visibility = Visibility.Collapsed;
         StopBtn.Visibility = Visibility.Visible;
         _cts = new CancellationTokenSource();
 
@@ -1318,12 +1290,19 @@ public partial class ChatWindow : GlassWindow
         }
         finally
         {
+            if (_reasoningExpander is not null)
+            {
+                _reasoningExpander.Header = "已思考";
+                _reasoningExpander.IsExpanded = false;
+            }
             _cts?.Dispose();
             _cts = null;
             _streamingText = null;
             _reasoningText = null;
             _reasoningHost = null;
+            _reasoningExpander = null;
             SendBtn.IsEnabled = true;
+            SendBtn.Visibility = Visibility.Visible;
             StopBtn.Visibility = Visibility.Collapsed;
             ReloadSessionList();
             ScrollToEnd();
@@ -1334,9 +1313,15 @@ public partial class ChatWindow : GlassWindow
     {
         var shell = BuildMessageShell(isUser: false, out var container);
 
-        _reasoningHost = BuildReasoning("", out var reasoningBody, out _);
+        _reasoningHost = BuildReasoning(
+            "",
+            out var reasoningBody,
+            out _,
+            out var reasoningExpander,
+            live: true);
         _reasoningHost.Visibility = Visibility.Collapsed;
         _reasoningText = reasoningBody;
+        _reasoningExpander = reasoningExpander;
         container.Children.Add(_reasoningHost);
 
         _streamingText = new TextBlock
@@ -1376,8 +1361,56 @@ public partial class ChatWindow : GlassWindow
     }
 
     // ==================== 杂项 ====================
+    private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e) => UpdateResponsiveLayout();
+
+    private void UpdateResponsiveLayout()
+    {
+        if (StatusPill is null || Composer is null) return;
+
+        // 先保住会话、阅读列和输入框；模型控件在窄窗口隐藏后仍可从设置中修改。
+        SidebarColumn.Width = new GridLength(
+            ActualWidth >= 1500 ? 316 :
+            ActualWidth < 880 ? 194 : 228);
+        ModelSelectorHost.Visibility = Visibility.Visible;
+        InputHint.Visibility = ActualWidth >= 980 ? Visibility.Visible : Visibility.Collapsed;
+        SafetyHint.Visibility = ActualWidth >= 920 ? Visibility.Visible : Visibility.Collapsed;
+
+        double horizontal = ActualWidth < 900 ? 18 : 28;
+        Composer.Margin = new Thickness(horizontal, 6, horizontal, 8);
+        double messageTop = MessageList.Items.Count == 0
+            ? 18
+            : ActualWidth >= 1500 ? 88 : 36;
+        MessageScroll.Padding = ActualWidth < 900
+            ? new Thickness(24, messageTop, 24, 10)
+            : new Thickness(48, messageTop, 48, 10);
+    }
+
+    private void OnWindowStateChanged(object? sender, EventArgs e)
+    {
+        if (MaximizeIcon is null || ChromeRoot is null) return;
+        bool maximized = WindowState == WindowState.Maximized;
+        MaximizeIcon.Icon = maximized ? IconKind.FullScreenMinimize : IconKind.Square;
+        MaximizeButton.ToolTip = maximized ? "还原" : "最大化";
+        ChromeRoot.CornerRadius = maximized ? new CornerRadius(0) : new CornerRadius(14);
+    }
+
+    private void OnMinimizeClick(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void OnMaximizeClick(object sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+
     private void OnDragArea(object sender, MouseButtonEventArgs e)
     {
+        if (e.ChangedButton != MouseButton.Left) return;
+
+        if (e.ClickCount == 2)
+        {
+            OnMaximizeClick(sender, e);
+            return;
+        }
+
         if (e.ButtonState == MouseButtonState.Pressed)
         {
             try { DragMove(); } catch { }

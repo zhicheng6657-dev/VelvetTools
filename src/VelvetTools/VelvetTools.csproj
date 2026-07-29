@@ -22,7 +22,9 @@
     <Authors>Velvet</Authors>
     <Company>Velvet</Company>
     <Description>开源 Windows 玻璃质感工具箱：AI 对话 / 文件搜索 / 截图标注 / OCR / 翻译 / 取色 / 剪贴板 / 启动器 / 硬件监控</Description>
-    <Copyright>Copyright (c) 2026 Velvet (MIT)</Copyright>
+    <Copyright>Copyright (c) 2026 Velvet (GPL-3.0-or-later)</Copyright>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/zhicheng6657-dev/VelvetTools-cess</RepositoryUrl>
     <SatelliteResourceLanguages>zh-Hans;en</SatelliteResourceLanguages>
     <!-- WPF 应用的 DPI 由 manifest 声明；WFAC010 是 WinForms 分析器的误报 -->
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
@@ -53,7 +55,7 @@
 
   <ItemGroup>
     <!-- 发布包必须同时携带本项目与所有随包资源的许可证/归属说明。 -->
-    <Content Include="..\..\LICENSE" Link="Licenses\VelvetTools-MIT.txt">
+    <Content Include="..\..\LICENSE" Link="Licenses\VelvetTools-GPL-3.0-or-later.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\THIRD_PARTY.md" Link="Licenses\THIRD_PARTY.md">

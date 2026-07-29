@@ -324,7 +324,13 @@ public sealed class ServiceHub : IDisposable
         {
             ("控制面板", ToggleDashboard, () => _dashboard, () => _dashboard?.Hide()),
             ("设置", ShowSettingsWindow, () => _settingsWindow, () => _settingsWindow?.Hide()),
-            ("AI 对话", ShowChatWindow, () => _chatWindow, () => _chatWindow?.Hide()),
+            ("AI 对话", () =>
+                {
+                    ShowChatWindow();
+                    SizeWindowForShot(_chatWindow, 1180, 780);
+                    _chatWindow?.PrepareEmptyStateForSelfTest();
+                },
+                () => _chatWindow, () => _chatWindow?.Hide()),
             ("文件搜索", ShowSearchWindow, () => _searchWindow, () => _searchWindow?.Hide()),
             ("知识库", ShowKnowledgeWindow, () => _knowledgeWindow, () => _knowledgeWindow?.Hide()),
             ("剪贴板历史", ShowClipboardWindow, () => _clipboardWindow, () => _clipboardWindow?.Hide()),
@@ -353,6 +359,169 @@ public sealed class ServiceHub : IDisposable
 
         if (shotDir is not null)
         {
+            try
+            {
+                ShowChatWindow();
+                if (_chatWindow is not null)
+                {
+                    SizeWindowForShot(_chatWindow, 820, 600);
+                    _chatWindow.PrepareEmptyStateForSelfTest();
+                }
+                Application.Current.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+                SaveShot(_chatWindow, System.IO.Path.Combine(shotDir, "AI 对话-窄窗口.png"));
+                if (_chatWindow is not null)
+                {
+                    SizeWindowForShot(_chatWindow, 1180, 780);
+                    RestoreChatSizeConstraints(_chatWindow);
+                    _chatWindow.Hide();
+                }
+                Logger.Info("  [自检] AI 对话-窄窗口 ✓");
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                Logger.Error("  [自检] AI 对话-窄窗口 ✗", ex);
+            }
+
+            try
+            {
+                ShowChatWindow();
+                if (_chatWindow is not null)
+                {
+                    SizeWindowForShot(_chatWindow, 1180, 780);
+                    _chatWindow.PrepareModelPickerForSelfTest();
+                }
+                Application.Current.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+                SaveScreenShot(_chatWindow, System.IO.Path.Combine(shotDir, "AI 对话-模型选择.png"));
+                if (_chatWindow is not null)
+                {
+                    _chatWindow.CloseModelPickerForSelfTest();
+                    RestoreChatSizeConstraints(_chatWindow);
+                    _chatWindow.Hide();
+                }
+                Logger.Info("  [自检] AI 对话-模型选择 ✓");
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                Logger.Error("  [自检] AI 对话-模型选择 ✗", ex);
+            }
+
+            try
+            {
+                ShowChatWindow();
+                if (_chatWindow is not null)
+                {
+                    SizeWindowForShot(_chatWindow, 1920, 1124);
+                    _chatWindow.PrepareConversationStateForSelfTest();
+                }
+                Application.Current.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+                SaveShot(_chatWindow, System.IO.Path.Combine(shotDir, "AI 对话-示例会话.png"));
+                if (_chatWindow is not null)
+                {
+                    SizeWindowForShot(_chatWindow, 1180, 780);
+                    RestoreChatSizeConstraints(_chatWindow);
+                    _chatWindow.Hide();
+                }
+                Logger.Info("  [自检] AI 对话-示例会话 ✓");
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                Logger.Error("  [自检] AI 对话-示例会话 ✗", ex);
+            }
+
+            try
+            {
+                ShowChatWindow();
+                if (_chatWindow is not null)
+                {
+                    SizeWindowForShot(_chatWindow, 1180, 780);
+                    _chatWindow.PrepareReasoningStateForSelfTest();
+                }
+                Application.Current.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+                SaveShot(_chatWindow, System.IO.Path.Combine(shotDir, "AI 对话-思考过程.png"));
+                if (_chatWindow is not null)
+                {
+                    RestoreChatSizeConstraints(_chatWindow);
+                    _chatWindow.Hide();
+                }
+                Logger.Info("  [自检] AI 对话-思考过程 ✓");
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                Logger.Error("  [自检] AI 对话-思考过程 ✗", ex);
+            }
+
+            try
+            {
+                ShowChatWindow();
+                if (_chatWindow is not null)
+                {
+                    RestoreChatSizeConstraints(_chatWindow);
+                    _chatWindow.PrepareEmptyStateForSelfTest();
+                    _chatWindow.WindowState = WindowState.Maximized;
+                }
+                Application.Current.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+
+                if (_chatWindow is not null)
+                {
+                    Rect workArea = SystemParameters.WorkArea;
+                    if (_chatWindow.ActualWidth > workArea.Width + 2
+                        || _chatWindow.ActualHeight > workArea.Height + 2)
+                    {
+                        throw new InvalidOperationException(
+                            $"最大化尺寸 {_chatWindow.ActualWidth:0}×{_chatWindow.ActualHeight:0} " +
+                            $"超过工作区 {workArea.Width:0}×{workArea.Height:0}");
+                    }
+                }
+
+                SaveShot(_chatWindow, System.IO.Path.Combine(shotDir, "AI 对话-最大化.png"));
+                if (_chatWindow is not null)
+                {
+                    _chatWindow.WindowState = WindowState.Normal;
+                    SizeWindowForShot(_chatWindow, 1180, 780);
+                    RestoreChatSizeConstraints(_chatWindow);
+                    _chatWindow.Hide();
+                }
+                Logger.Info("  [自检] AI 对话-最大化保留任务栏 ✓");
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                Logger.Error("  [自检] AI 对话-最大化保留任务栏 ✗", ex);
+            }
+
+            string originalTheme = ThemeManager.Mode;
+            try
+            {
+                ThemeManager.SetMode("dark");
+                ShowChatWindow();
+                if (_chatWindow is not null)
+                {
+                    SizeWindowForShot(_chatWindow, 1180, 780);
+                    _chatWindow.PrepareEmptyStateForSelfTest();
+                }
+                Application.Current.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+                SaveShot(_chatWindow, System.IO.Path.Combine(shotDir, "AI 对话-深色.png"));
+                if (_chatWindow is not null)
+                {
+                    RestoreChatSizeConstraints(_chatWindow);
+                    _chatWindow.Hide();
+                }
+                Logger.Info("  [自检] AI 对话-深色 ✓");
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                Logger.Error("  [自检] AI 对话-深色 ✗", ex);
+            }
+            finally
+            {
+                ThemeManager.SetMode(originalTheme);
+            }
+
             try
             {
                 ShowSettingsWindow();
@@ -572,6 +741,28 @@ public sealed class ServiceHub : IDisposable
     }
 
     /// <summary>把窗口内容渲染成 PNG（不经过屏幕，所以被遮挡也拍得到）。</summary>
+    private static void SizeWindowForShot(Window? window, double width, double height)
+    {
+        if (window is null) return;
+        window.WindowState = WindowState.Normal;
+        window.SizeToContent = SizeToContent.Manual;
+        window.MinWidth = 0;
+        window.MinHeight = 0;
+        window.Width = width;
+        window.Height = height;
+        // 自检期间把目标尺寸同时设为下限，避免无边框窗口尚未完成原生尺寸消息时
+        // RenderTargetBitmap 偶发只拿到 XAML 的最小尺寸。
+        window.MinWidth = width;
+        window.MinHeight = height;
+        window.UpdateLayout();
+    }
+
+    private static void RestoreChatSizeConstraints(ChatWindow window)
+    {
+        window.MinWidth = 760;
+        window.MinHeight = 540;
+    }
+
     private static void SaveShot(Window? window, string path)
     {
         if (window is null || window.ActualWidth < 1 || window.ActualHeight < 1) return;
@@ -587,6 +778,21 @@ public sealed class ServiceHub : IDisposable
         encoder.Frames.Add(BitmapFrame.Create(bmp));
         using var fs = System.IO.File.Create(path);
         encoder.Save(fs);
+    }
+
+    private static void SaveScreenShot(Window? window, string path)
+    {
+        if (window is null || window.ActualWidth < 1 || window.ActualHeight < 1) return;
+
+        Point topLeft = window.PointToScreen(new Point(0, 0));
+        var dpi = VisualTreeHelper.GetDpi(window);
+        var bounds = new System.Drawing.Rectangle(
+            (int)Math.Floor(topLeft.X),
+            (int)Math.Floor(topLeft.Y),
+            (int)Math.Ceiling(window.ActualWidth * dpi.DpiScaleX),
+            (int)Math.Ceiling(window.ActualHeight * dpi.DpiScaleY));
+        using var bmp = Modules.Screenshot.CaptureService.CaptureRect(bounds);
+        bmp.Save(path, System.Drawing.Imaging.ImageFormat.Png);
     }
 
     private static void SaveElementShot(FrameworkElement element, string path)

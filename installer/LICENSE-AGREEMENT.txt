@@ -1,31 +1,23 @@
-Velvet Tools 安装与使用协议
+Velvet Tools 开源许可与安装说明
 ========================================
 
-请在继续安装前阅读本协议。勾选“我接受协议”表示你已经阅读并同意以下条款。
+请在继续安装前阅读本说明。勾选“我接受协议”表示你已经阅读 GPL 开源许可、
+第三方组件说明、管理员权限用途和 Beta 风险提示。此确认不会限制 GPL 已经授予你的权利。
 
 一、开源许可
 
-Velvet Tools 源代码以 MIT License 提供：
-
 Copyright (c) 2026 Velvet
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Velvet Tools 是自由软件：你可以按照自由软件基金会发布的 GNU General Public
+License 的条款重新分发和/或修改本程序；你可以选择许可证第 3 版，或任何后续版本。
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+本程序按“现状”提供，希望它能有用，但不作任何保证；包括但不限于适销性或特定用途
+适用性的默示保证。完整 GPLv3 正文随软件安装在：
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Velvet Tools\Licenses\VelvetTools-GPL-3.0-or-later.txt
+
+对应版本的完整源代码发布在：
+https://github.com/zhicheng6657-dev/VelvetTools-cess
 
 二、第三方组件
 
@@ -64,4 +56,4 @@ OCR 或搜索功能只会把完成相应请求所需的数据发送给你自行�
 数据。安装包当前未使用商业代码签名证书签名，Windows SmartScreen 可能显示“未知发布者”；
 请只从项目正式 GitHub Releases 页面下载并核对 SHA-256。
 
-项目主页：https://github.com/zhicheng6657-dev/VelvetTools
+项目主页：https://github.com/zhicheng6657-dev/VelvetTools-cess

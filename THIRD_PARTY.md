@@ -1,10 +1,11 @@
 # 第三方组件与许可合规说明
 
-Velvet Tools 以 **MIT** 协议开源。本文件逐项列出：**随包分发的依赖**（许可必须兼容）、
+Velvet Tools 以 **GNU GPL-3.0-or-later** 协议开源。本文件逐项列出：**随包分发的依赖**（许可必须兼容）、
 **运行时可选依赖**（不分发）、以及**仅参考产品思路的项目**（未使用其代码）。
 
 > 原则：只有来源和再分发条件明确的代码或资源才进入发行包；许可不明的内容不使用。
-> GPL、Anti-996 等参考项目只用于理解通用产品需求，具体代码和视觉资产均独立实现。
+> 第三方文件继续保留其原始许可证、版权声明与 NOTICE；项目主许可证不会覆盖或抹去这些信息。
+> Anti-996、闭源或许可证不清晰的项目只用于理解通用产品需求，具体代码和视觉资产均独立实现。
 
 ---
 
@@ -94,7 +95,7 @@ DeepSeek、智谱 GLM、硅基流动、OpenAI 兼容接口、DeepL、百度翻�
 
 ---
 
-## 六、仅参考产品思路的项目（**未使用其任何代码**）
+## 六、上游设计与实现参考
 
 | 项目 | 许可证 | 我们参考了什么 | 合规说明 |
 | --- | --- | --- | --- |
@@ -104,14 +105,16 @@ DeepSeek、智谱 GLM、硅基流动、OpenAI 兼容接口、DeepL、百度翻�
 | [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) | MIT | 启动器搜索评分思路 | 无代码复用 |
 | [Text-Grab](https://github.com/TheJoeFin/Text-Grab) | MIT | 用 `Windows.Media.Ocr` 做本地离线 OCR 的技术路线 | 无代码复用；该 API 是系统公开接口 |
 | [all-smi](https://github.com/lablup/all-smi) | Apache-2.0 | Windows 上按公开接口逐级回退、明确标注 CPU 温度能力缺失的产品策略 | 仅核对公开文档与能力边界；温度查询代码独立实现，未复制 Rust 源码 |
+| [Hermes Agent Desktop](https://github.com/NousResearch/hermes-agent/tree/main/apps/desktop) | MIT（Copyright © 2025 Nous Research） | AI 对话页的信息架构、扁平消息排版、侧栏、标题栏、贴底输入区、主题令牌与响应式优先级 | 已下载官方桌面端源码进行源码级参考；Velvet Tools 使用 WPF/C# 重新实现，不分发 Hermes 的 React/Electron 运行时、品牌素材或图标；随包附 `Licenses/Hermes-Agent-MIT.txt` |
 | [TrafficMonitor](https://github.com/zhongyang219/TrafficMonitor) | **Anti-996 License**（非标准） | 任务栏内嵌信息条 / 简约图标模式的**产品形态** | **仅借鉴思路，未使用任何代码**，规避非标准许可证风险；窗口内嵌、多列布局、保活策略均自行设计 |
-| [ShareX](https://github.com/ShareX/ShareX) | GPL-3.0 | 截图后操作栏的工作流概念 | **仅借鉴思路，未使用任何代码**，避免 GPL 传染 |
-| [Chatbox](https://github.com/chatboxai/chatbox) | GPLv3（社区版） | AI 对话的产品形态（会话列表 + 气泡 + 模型切换） | **仅借鉴思路，未使用任何代码**，避免 GPL 传染 |
+| [ShareX](https://github.com/ShareX/ShareX) | GPL-3.0 | 截图后操作栏的工作流概念 | 仅借鉴通用工作流，未复制源码或视觉资源 |
+| [Chatbox](https://github.com/chatboxai/chatbox) | GPLv3（社区版） | AI 对话的产品形态（会话列表 + 气泡 + 模型切换） | 仅借鉴通用产品形态，未复制源码或视觉资源 |
 | [EarTrumpet](https://github.com/File-New-Project/EarTrumpet) | 修改版 MIT（含额外排除条款） | 托盘音量控制形态 | 仅思路，无代码复用 |
 | Snipaste / PixPin / uTools / Ditto / QuickLook | 闭源或各异 | 贴图、标注、剪贴板等大众化产品概念 | 无代码接触 |
 
 > 合规边界：通用功能需求和抽象工作流通常可以独立实现；具体源码、文案、图形、独创的视觉表达、
-> 商标和其他受保护资产不能据此复制。本项目没有移植上述 GPL / Anti-996 项目的代码或资源；
+> 商标和其他受保护资产必须有明确授权才能使用。Hermes Agent Desktop 的 MIT 授权与版权声明
+> 已保留；本项目没有移植上述 Anti-996、闭源或许可证不清晰项目的代码或资源。
 > 每次发布仍应保留来源记录和相似度检查，不能把本段当作绝对法律结论。
 
 ---
@@ -126,7 +129,8 @@ Velvet Tools 与上述项目及厂商均无从属或背书关系。
 
 ## 八、发布前合规检查清单
 
-- [x] 发行包内 `Licenses/VelvetTools-MIT.txt`、`Licenses/THIRD_PARTY.md` 存在
+- [x] 发行包内 `Licenses/VelvetTools-GPL-3.0-or-later.txt`、`Licenses/THIRD_PARTY.md` 存在
+- [x] `Licenses/Hermes-Agent-MIT.txt` 存在且保留 Nous Research 版权声明
 - [x] `Licenses/Inter-OFL.txt` 存在且完整
 - [x] `Assets/Brand/README.md` 记录原创 Logo 的生成来源与最终提示词
 - [x] `Licenses/PdfPig-Apache-2.0-and-NOTICE.txt`、`Licenses/OpenXml-MIT.txt` 存在
@@ -138,4 +142,4 @@ Velvet Tools 与上述项目及厂商均无从属或背书关系。
 - [x] 温度回退只查询系统/厂商公开接口和已运行工具的 WMI，不下载或启动外部监控工具
 - [x] README 与界面文案未将 Everything 描述为“Velvet Tools 的 MIT 源码”
 - [x] 安装/卸载回归通过，最高权限计划任务仅在用户明确勾选后创建并在卸载时删除
-- [x] 新增任何依赖前，先在本文件登记许可证并确认与 MIT 兼容
+- [x] 新增任何依赖前，先在本文件登记许可证并确认与 GPL-3.0-or-later 兼容
