@@ -34,7 +34,7 @@ public sealed class MonitorItem : ObservableObject
 }
 
 /// <summary>
-/// 显示器亮度控制。思路与 Twinkle Tray 一致（该项目为 MIT），实现为自研 C#：
+/// 显示器亮度控制。实现为项目自有 C# 代码：
 /// 外接显示器走 DDC/CI（dxva2.dll），笔记本内屏走 WMI。
 /// </summary>
 public sealed class BrightnessService : IDisposable

@@ -10,7 +10,7 @@ using VelvetTools.Common.Interop;
 namespace VelvetTools.Modules.Screenshot;
 
 /// <summary>
-/// 贴图窗口（灵感来自 Snipaste 的"贴到屏幕上"，自研实现）：
+/// 项目自有的贴图窗口：
 /// 置顶显示截图，滚轮缩放，拖动移动，Ctrl+C 复制，Esc/双击关闭。
 /// </summary>
 public sealed class PinWindow : Window

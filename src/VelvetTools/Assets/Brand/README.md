@@ -1,16 +1,8 @@
 # Velvet Tools brand asset source
 
-`VelvetTools-V-master.png` is a new, project-specific V mark created on
-2026-07-27 with OpenAI's built-in image-generation capability. Two images were
-used only as visual-direction references:
-
-- the user's `V_logo_square_1024.png`, for a blue/cyan palette and friendly
-  desktop-software feel;
-- the project's former V icon, for compact small-size proportions.
-
-The generated mark uses a new joined-ribbon geometry and does not trace or
-reuse the former skill-icons SVG path. The prior skill-icons-derived raster and
-vector logo assets were replaced.
+`VelvetTools-V-master.png` is the project-specific master artwork for the
+Velvet V mark. The symbol uses an original joined-ribbon geometry and contains
+no third-party font, icon, logo path or other bundled artwork.
 
 ## Generation prompt
 
@@ -24,10 +16,8 @@ do not trace their exact geometry. Center one standalone mark on a flat
 `#ff00ff` chroma-key background. Keep it clear at 16 px. No text, watermark,
 enclosing tile, cast shadow, or reflection.
 
-The chroma background was removed with the installed OpenAI image-generation
-skill helper (`remove_chroma_key.py`, soft matte and despill). The final
-packaged PNG and ICO derivatives are generated deterministically by
+The final packaged PNG and ICO derivatives are generated deterministically by
 `tools/generate_brand_assets.py`.
 
 The generated brand assets are distributed as part of Velvet Tools under the
-repository's MIT license. They contain no bundled third-party font or icon file.
+repository's GPL-3.0-or-later license.

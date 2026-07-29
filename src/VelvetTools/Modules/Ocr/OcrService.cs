@@ -11,8 +11,8 @@ using Windows.Media.Ocr;
 namespace VelvetTools.Modules.Ocr;
 
 /// <summary>
-/// OCR 服务：默认走 Windows 系统自带的离线 OCR（免费、无需配置，思路同
-/// PowerToys Text Extractor / Text-Grab，均为 MIT）；可选切换 OpenAI 兼容视觉接口。
+/// OCR 服务：默认走 Windows 系统自带的离线 OCR（免费、无需配置）；
+/// 可选切换 OpenAI 兼容视觉接口。
 /// </summary>
 public sealed class OcrService
 {

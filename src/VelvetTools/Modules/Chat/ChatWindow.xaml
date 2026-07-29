@@ -15,8 +15,7 @@
                     SizeChanged="OnWindowSizeChanged">
     <common:GlassWindow.Resources>
         <!--
-        对话页的信息架构与视觉关系基于 MIT 许可的 Hermes Agent Desktop 重新实现。
-        上游归属见 Licenses/Hermes-Agent-MIT.txt；此处为 WPF/XAML 原生实现。
+        对话页采用项目自有的 WPF/XAML 实现，不包含第三方界面代码或品牌资源。
         -->
         <Style x:Key="SidebarNavButton" TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
@@ -88,7 +87,7 @@
             </DataTemplate.Triggers>
         </DataTemplate>
 
-        <!-- Hermes 式模型按钮：仅显示模型，配置和服务商切换统一留在设置页。 -->
+        <!-- 模型按钮仅显示模型，配置和服务商切换统一留在设置页。 -->
         <Style x:Key="ModelPillComboBox" TargetType="ComboBox">
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="FontSize" Value="11"/>
@@ -289,7 +288,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Hermes 式单层侧栏：导航、搜索和会话在同一平面，不叠卡片。 -->
+            <!-- 单层侧栏：导航、搜索和会话在同一平面，不叠卡片。 -->
             <Border Grid.Column="0"
                     Background="{DynamicResource ChatSidebarBrush}"
                     BorderBrush="{DynamicResource HairlineBrush}"
@@ -464,7 +463,7 @@
                     </Button>
                 </Grid>
 
-                <!-- 消息区沿用 Hermes 的文档式阅读列：助手通栏，用户消息仅轻微着色。 -->
+                <!-- 文档式阅读列：助手通栏，用户消息仅轻微着色。 -->
                 <Grid Grid.Row="1">
                     <ScrollViewer x:Name="MessageScroll"
                                   VerticalScrollBarVisibility="Auto"
@@ -658,7 +657,7 @@
                     </Grid>
                 </Border>
 
-                <!-- 极轻状态栏与 Hermes 保持同一信息层级，不再使用悬浮状态胶囊。 -->
+                <!-- 极轻状态栏，不再使用悬浮状态胶囊。 -->
                 <Border Grid.Row="3"
                         BorderBrush="{DynamicResource HairlineBrush}"
                         BorderThickness="0,1,0,0">

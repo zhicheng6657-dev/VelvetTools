@@ -117,6 +117,84 @@ function Sign-File {
     }
 }
 
+function Copy-DotNetReleaseLicenses {
+    param([Parameter(Mandatory)][string]$PublishPath)
+
+    $runtimeConfigPath = Join-Path $PublishPath 'VelvetTools.runtimeconfig.json'
+    $assetsPath = Join-Path (Split-Path -Parent $projectPath) 'obj\project.assets.json'
+    if (-not (Test-Path -LiteralPath $runtimeConfigPath)) {
+        throw "Runtime configuration was not produced: $runtimeConfigPath"
+    }
+    if (-not (Test-Path -LiteralPath $assetsPath)) {
+        throw "NuGet assets file was not produced: $assetsPath"
+    }
+
+    $runtimeConfig = Get-Content -LiteralPath $runtimeConfigPath -Raw -Encoding UTF8 |
+        ConvertFrom-Json
+    $frameworks = @($runtimeConfig.runtimeOptions.includedFrameworks)
+    $netCoreFramework = $frameworks |
+        Where-Object name -EQ 'Microsoft.NETCore.App' |
+        Select-Object -First 1
+    $windowsDesktopFramework = $frameworks |
+        Where-Object name -EQ 'Microsoft.WindowsDesktop.App' |
+        Select-Object -First 1
+    if (-not $netCoreFramework -or -not $windowsDesktopFramework) {
+        throw 'The self-contained publish did not record both .NET and Windows Desktop runtimes.'
+    }
+
+    $assets = Get-Content -LiteralPath $assetsPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $packageRoots = @($assets.packageFolders.PSObject.Properties.Name)
+    if ($packageRoots.Count -eq 0) {
+        throw 'No NuGet global package folder was recorded in project.assets.json.'
+    }
+    $packageRoot = $packageRoots[0]
+    $licenseDir = Join-Path $PublishPath 'Licenses'
+    New-Item -ItemType Directory -Path $licenseDir -Force | Out-Null
+
+    $netCorePackage = Join-Path $packageRoot (
+        'microsoft.netcore.app.runtime.win-x64\{0}' -f $netCoreFramework.version
+    )
+    $windowsDesktopPackage = Join-Path $packageRoot (
+        'microsoft.windowsdesktop.app.runtime.win-x64\{0}' -f $windowsDesktopFramework.version
+    )
+    $dotnetCommand = Get-Command dotnet -ErrorAction Stop
+    $dotnetLibraryLicense = Join-Path (Split-Path -Parent $dotnetCommand.Source) 'LICENSE.txt'
+
+    $requiredFiles = @(
+        @{
+            Source = $dotnetLibraryLicense
+            Destination = 'DotNet-Windows-Library-License.txt'
+        },
+        @{
+            Source = Join-Path $netCorePackage 'LICENSE.TXT'
+            Destination = 'DotNet-RuntimePack-MIT.txt'
+        },
+        @{
+            Source = Join-Path $netCorePackage 'THIRD-PARTY-NOTICES.TXT'
+            Destination = 'DotNet-RuntimePack-THIRD-PARTY-NOTICES.txt'
+        },
+        @{
+            Source = Join-Path $windowsDesktopPackage 'LICENSE'
+            Destination = 'DotNet-WindowsDesktop-RuntimePack-MIT.txt'
+        }
+    )
+
+    foreach ($file in $requiredFiles) {
+        if (-not (Test-Path -LiteralPath $file.Source)) {
+            throw "Required .NET license file was not found: $($file.Source)"
+        }
+        Copy-Item -LiteralPath $file.Source `
+            -Destination (Join-Path $licenseDir $file.Destination) `
+            -Force
+    }
+
+    Write-Host (
+        '.NET release licenses copied for runtime {0} / Windows Desktop {1}.' -f
+        $netCoreFramework.version,
+        $windowsDesktopFramework.version
+    )
+}
+
 Reset-BuildDirectory -Path $publishDir
 Reset-BuildDirectory -Path $releaseDir
 
@@ -136,6 +214,8 @@ dotnet publish $projectPath `
     -p:DebugType=None `
     -p:DebugSymbols=false
 if ($LASTEXITCODE -ne 0) { throw 'Self-contained publish failed.' }
+
+Copy-DotNetReleaseLicenses -PublishPath $publishDir
 
 $signTool = $null
 if ($CertificateThumbprint) {

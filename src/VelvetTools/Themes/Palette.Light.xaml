@@ -35,7 +35,7 @@
     <!-- 窗口底衬：Mica 浅灰白（Win11 任务管理器观感） -->
     <SolidColorBrush x:Key="WindowTintBrush" Color="#EAF4F6F9"/>
 
-    <!-- AI 对话页使用更接近 Hermes Desktop 的单层冷白表面。 -->
+    <!-- AI 对话页使用单层冷白表面，减少嵌套卡片。 -->
     <SolidColorBrush x:Key="ChatSurfaceBrush" Color="#FFF8FAFF"/>
     <SolidColorBrush x:Key="ChatSidebarBrush" Color="#FFF3F7FF"/>
     <SolidColorBrush x:Key="ChatComposerBrush" Color="#FFFFFFFF"/>

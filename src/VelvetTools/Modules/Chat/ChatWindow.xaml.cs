@@ -619,7 +619,7 @@ public partial class ChatWindow : GlassWindow
             body = stack;
         }
 
-        // Hermes 式消息层级：用户输入是一条轻描边行，助手回复保持文档式通栏。
+        // 用户输入使用轻描边行，助手回复保持文档式通栏。
         if (m.IsUser)
         {
             var bubble = new Border

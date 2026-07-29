@@ -1,0 +1,26 @@
+Microsoft .NET on Windows license information
+================================================
+
+Velvet Tools is published as a self-contained Windows application. The
+following Microsoft runtime binaries are distributed with the application
+under licenses that are separate from the GNU GPL covering Velvet Tools.
+
+Microsoft's official per-file license information states:
+
+- coreclr.dll, PresentationNative_cor3.dll, vcruntime140_cor3.dll and
+  wpfgfx_cor3.dll are licensed under the Microsoft .NET Library License.
+- D3DCompiler_47_cor3.dll is licensed under the Microsoft Windows Software
+  Development Kit (SDK) for Windows 10 license.
+- Other .NET runtime files are licensed under the MIT license unless their
+  accompanying notices state otherwise.
+
+The authoritative terms and component mapping are available from Microsoft:
+
+https://github.com/dotnet/core/blob/main/license-information-windows.md
+https://dotnet.microsoft.com/en-us/dotnet_library_license.htm
+https://learn.microsoft.com/en-us/legal/windows-sdk/license
+
+The complete .NET Library License copied from the installed .NET SDK, the MIT
+runtime licenses, and the runtime third-party notices are included next to this
+file in the Licenses directory. These Microsoft components are not relicensed
+under the Velvet Tools GPL and no Microsoft trademark endorsement is claimed.

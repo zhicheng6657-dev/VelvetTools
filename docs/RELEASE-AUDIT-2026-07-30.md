@@ -1,9 +1,9 @@
 # Velvet Tools 发布、测试与开源合规审计
 
-审计日期：2026-07-28  
+审计日期：2026-07-30
 审计范围：当前工作区源码、Release 构建、`out/publish-win-x64` 发布目录、安装/卸载程序、
 开机自启与最高权限配置、内置图片/字体/图标、NuGet 依赖、Everything 引擎及 SDK、
-用户指定参考项目的许可边界。
+自包含 .NET/WPF 运行时及所有随包许可证。
 
 ## 结论
 
@@ -21,9 +21,12 @@
   复核；漏洞目录更新时间为 2026-07-24T23:40:32Z。`System.IO.Packaging` 在目录中有历史公告，
   但受影响范围最高到 8.0.0，当前解析版本为 8.0.1；其余包无目录条目。8 个版本的包注册元数据
   均未标记 deprecated。受当前受限网络环境影响，本轮没有刷新到更新的在线目录。
-- **开源许可：GPL-3.0-or-later。** 当前依赖与资源构成兼容 GPLv3；Velvet Tools 自切换版本起
-  按 GPL-3.0-or-later 发布，
-  发行包必须继续附带 `Licenses/` 与 `Assets/Everything/Everything-License.txt`。
+- **开源许可：GPL-3.0-or-later。** Velvet Tools 自有源码自切换版本起按
+  GPL-3.0-or-later 发布；随包的 Microsoft 运行时、字体、图标、Everything 与 NuGet
+  组件不被重新许可，继续适用各自条款。发行包必须保留 `Licenses/` 与
+  `Assets/Everything/Everything-License.txt`。
+- **公开归因已收敛。** 第三方清单只记录实际进入源码仓库或发布包的组件；仅用于理解
+  通用界面与产品需求、但没有复制代码或资源的项目不再列为依赖，也不随包附无必要的许可证。
 
 本报告是基于当前仓库状态的工程与许可尽调，不替代律师针对具体司法辖区给出的法律意见。
 
@@ -76,8 +79,7 @@ BSD-3-Clause 声明。当前发布包原样附带官方许可文件，源文件�
 ACPI Thermal Zone；ACPI 读数只标成“系统热区”。NVIDIA GPU 使用驱动自带 `nvidia-smi`
 只读 CSV 查询，且只允许受保护的系统目录和 Program Files 固定路径。
 
-发行包没有新增 LibreHardwareMonitor、OpenHardwareMonitor、WinRing0、PawnIO 或其他驱动；
-没有复制 all-smi、LibreHardwareMonitor 或 OpenHardwareMonitor 的源码。
+发行包没有新增硬件监控程序或第三方内核驱动，也没有复制外部监控项目的源码。
 
 ### 安装协议乱码
 
@@ -97,15 +99,20 @@ NSIS `LicenseData` 要求 DOS CRLF 文本。源协议继续保持便于版本管
 
 ## 第三方边界
 
-TrafficMonitor（Anti-996）、Chatbox（GPLv3）和 ShareX（GPL-3.0）只用于理解通用产品形态；
-仓库未纳入它们的源文件、图标、字体、文案或其他资源。任务栏窗口、聊天界面和截图工具栏均为
-当前 WPF 项目的独立实现。更完整的依赖用途与逐项许可见根目录 `THIRD_PARTY.md`。
+面向用户的第三方清单只登记实际随源码或二进制分发的组件。公开产品、用户截图和其他
+界面资料仅用于表达通用需求时，不构成代码或资源依赖，因此不加入许可证清单。任务栏窗口、
+聊天界面和截图工具栏均为当前 WPF 项目的独立实现。完整依赖用途与逐项许可见根目录
+`THIRD_PARTY.md`。
 
 ## 发布包必须保留
 
 - `Licenses/VelvetTools-GPL-3.0-or-later.txt`
-- `Licenses/Hermes-Agent-MIT.txt`
 - `Licenses/THIRD_PARTY.md`
+- `Licenses/DotNet-Windows-Library-License.txt`
+- `Licenses/DotNet-Windows-License-Information.txt`
+- `Licenses/DotNet-RuntimePack-MIT.txt`
+- `Licenses/DotNet-RuntimePack-THIRD-PARTY-NOTICES.txt`
+- `Licenses/DotNet-WindowsDesktop-RuntimePack-MIT.txt`
 - `Licenses/FluentIcons-MIT.txt`
 - `Licenses/FluentUI-System-Icons-MIT.txt`
 - `Licenses/FluentUI-System-Icons-NOTICE.txt`
@@ -114,7 +121,10 @@ TrafficMonitor（Anti-996）、Chatbox（GPLv3）和 ShareX（GPL-3.0）只用�
 - `Licenses/PdfPig-Apache-2.0-and-NOTICE.txt`
 - `Licenses/System.Management-MIT.txt`
 - `Licenses/System.Management-THIRD-PARTY-NOTICES.txt`
-- `Licenses/NSIS-zlib.txt`
+- `Licenses/System.CodeDom-MIT.txt`
+- `Licenses/System.CodeDom-THIRD-PARTY-NOTICES.txt`
+- `Licenses/System.IO.Packaging-MIT.txt`
+- `Licenses/System.IO.Packaging-THIRD-PARTY-NOTICES.txt`
 - `Assets/Everything/Everything-License.txt`
 
 ## Beta 0.01 发布产物

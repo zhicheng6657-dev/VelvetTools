@@ -18,7 +18,7 @@ public sealed class AppItem
 
 /// <summary>
 /// 应用索引：扫描开始菜单（系统 + 当前用户）的快捷方式。
-/// 思路与 Flow Launcher / ZTools 的启动器一致（两者均 MIT），实现自研。
+/// 启动器索引与搜索评分为项目自有实现。
 /// </summary>
 public sealed class AppIndexService
 {

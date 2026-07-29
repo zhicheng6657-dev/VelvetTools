@@ -688,7 +688,7 @@
         </Setter>
     </Style>
 
-    <!-- 分区小标题（ZTools 式蓝色 caption） -->
+    <!-- 分区小标题：蓝色 caption -->
     <Style x:Key="SectionCaption" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="FontSize" Value="12.5"/>

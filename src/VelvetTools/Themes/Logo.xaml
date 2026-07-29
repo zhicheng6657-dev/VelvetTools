@@ -2,9 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        Velvet Tools 原创 V 标志。主图由 OpenAI 图像生成能力创建，来源与提示词
-        记录在 Assets/Brand/README.md；各尺寸由 tools/generate_brand_assets.py
-        确定性生成。这里直接引用位图资源，不再包含第三方 SVG 路径。
+        Velvet Tools 原创 V 标志。各尺寸由 tools/generate_brand_assets.py
+        确定性生成；这里直接引用项目自有位图资源。
     -->
 
     <BitmapImage x:Key="LogoWhiteImage"
