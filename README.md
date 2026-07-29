@@ -19,7 +19,7 @@ Velvet Tools 是一个常驻系统托盘的 Windows 工具箱。它把日常会�
 
 当前版本为 **Beta 0.01**，支持 Windows 10 1809 及以上版本和 Windows 11 x64。
 
-请从 [Releases](https://github.com/zhicheng6657-dev/VelvetTools-cess/releases) 下载：
+请从 [Releases](https://github.com/zhicheng6657-dev/VelvetTools/releases) 下载：
 
 - `VelvetTools-Setup-0.0.1-beta.1-win-x64.exe`：安装版，支持覆盖升级和完整卸载
 - `VelvetTools-Portable-0.0.1-beta.1-win-x64.zip`：便携版，解压后直接运行
@@ -57,7 +57,7 @@ dotnet build src\VelvetTools\VelvetTools.csproj -c Release
 
 ## 开源许可
 
-[GNU GPL-3.0-or-later](LICENSE) © 2026 [Velvet](https://github.com/zhicheng6657-dev/VelvetTools-cess)
+[GNU GPL-3.0-or-later](LICENSE) © 2026 [Velvet](https://github.com/zhicheng6657-dev/VelvetTools)
 
 你可以使用、研究、修改和重新分发 Velvet Tools；发布修改版或衍生版时，需要继续按
 GPL-3.0-or-later 提供对应源码。字体、图标、Everything 与 NuGet 组件仍分别遵循

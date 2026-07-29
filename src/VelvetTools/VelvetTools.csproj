@@ -24,7 +24,7 @@
     <Description>开源 Windows 玻璃质感工具箱：AI 对话 / 文件搜索 / 截图标注 / OCR / 翻译 / 取色 / 剪贴板 / 启动器 / 硬件监控</Description>
     <Copyright>Copyright (c) 2026 Velvet (GPL-3.0-or-later)</Copyright>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/zhicheng6657-dev/VelvetTools-cess</RepositoryUrl>
+    <RepositoryUrl>https://github.com/zhicheng6657-dev/VelvetTools</RepositoryUrl>
     <SatelliteResourceLanguages>zh-Hans;en</SatelliteResourceLanguages>
     <!-- WPF 应用的 DPI 由 manifest 声明；WFAC010 是 WinForms 分析器的误报 -->
     <NoWarn>$(NoWarn);WFAC010</NoWarn>

@@ -36,7 +36,7 @@ Unicode True
 !define APP_EXE "VelvetTools.exe"
 !define APP_REG_KEY "Software\VelvetTools"
 !define APP_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\VelvetTools"
-!define APP_URL "https://github.com/zhicheng6657-dev/VelvetTools-cess"
+!define APP_URL "https://github.com/zhicheng6657-dev/VelvetTools"
 
 Name "${APP_NAME} ${APP_DISPLAY_VERSION}"
 OutFile "${OUTPUT_DIR}\VelvetTools-Setup-${APP_VERSION}-win-x64.exe"

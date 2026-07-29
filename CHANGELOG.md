@@ -21,4 +21,4 @@ Velvet Tools 的首个公开测试版（显示版本：Beta 0.01）。
 - 快捷键冲突时拒绝新值并保留原设置
 - 覆盖升级时保留用户的自启动、管理员模式和快捷方式配置
 
-[0.0.1-beta.1]: https://github.com/zhicheng6657-dev/VelvetTools-cess/releases/tag/v0.0.1-beta.1
+[0.0.1-beta.1]: https://github.com/zhicheng6657-dev/VelvetTools/releases/tag/v0.0.1-beta.1

@@ -17,7 +17,7 @@ License 的条款重新分发和/或修改本程序；你可以选择许可证�
 Velvet Tools\Licenses\VelvetTools-GPL-3.0-or-later.txt
 
 对应版本的完整源代码发布在：
-https://github.com/zhicheng6657-dev/VelvetTools-cess
+https://github.com/zhicheng6657-dev/VelvetTools
 
 二、第三方组件
 
@@ -66,4 +66,4 @@ OCR 或搜索功能只会把完成相应请求所需的数据发送给你自行�
 数据。安装包当前未使用商业代码签名证书签名，Windows SmartScreen 可能显示“未知发布者”；
 请只从项目正式 GitHub Releases 页面下载并核对 SHA-256。
 
-项目主页：https://github.com/zhicheng6657-dev/VelvetTools-cess
+项目主页：https://github.com/zhicheng6657-dev/VelvetTools

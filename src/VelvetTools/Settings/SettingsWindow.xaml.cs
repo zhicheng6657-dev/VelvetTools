@@ -706,7 +706,7 @@ public partial class SettingsWindow : GlassWindow
     private void OnOpenProjectClick(object sender, RoutedEventArgs e)
         => Process.Start(new ProcessStartInfo
         {
-            FileName = "https://github.com/zhicheng6657-dev/VelvetTools-cess",
+            FileName = "https://github.com/zhicheng6657-dev/VelvetTools",
             UseShellExecute = true,
         });
 
